@@ -1,9 +1,9 @@
 
-Breve descrição do grupo
+<!-- Breve descrição do grupo -->
 
-* Turno: [L]XX
-* Grupo: YY
+* Turno: L07
+* Grupo: 01
 * Alunos:
-    - Aluno1 upZZZZZ 
-    - Aluno2 upZZZZZ
-    - Aluno3 upZZZZZ
+    - Bruno Ricardo Soares Pereira de Sousa Oliveira up202208700 
+    - Mansur Mustafin up202102355
+    - Rodrigo Albergaria Coelho e Silva up202205188
