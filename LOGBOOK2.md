@@ -1,14 +1,14 @@
 # Dirty COW CVE-2016-5195
 
 
-* ## Identificação
+* ## Identification
     - Dirty COW (Copy-On-Write) is a local **privilege escalation** vulnerability in the **Linux kernel's** memory subsystem copy-on-write mechanism.
     - Affects Linux-based systems, including Android devices, using kernels versions from 2.6.22 to 4.8 inclusive.
     - Exploits a race condition to gain write access to read-only memory mappings.
     - Allows unauthorized modification and privilege escalation to root access.
 
 
-* ## Catalogação
+* ## Cataloging
     - Discovered by Phil Oester in 2016, designated [CVE-2016-5195](https://cve.mitre.org/cgi-bin/cvename.cgi?name=cve-2016-5195) through capturing HTTP logs;
     - [Patched by Linus Torvalds](https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=19be0eaffa3ac7d8eb6784ad9bdbc7d67ed8e619) in October 2016; 
     - Severity rated as **High** with a [CVSS v3](https://nvd.nist.gov/vuln/detail/cve-2016-5195) score of 7.0.
@@ -24,7 +24,7 @@
     <!-- *Encontrei nada sobre Metasploit para Dirty COW* -->
 
 
-* ## Ataques
+* ## Attacks
     <!-- - Malware incorporated Dirty COW to silently escalate privileges on infected Linux machines.
     - Local users exploited the flaw in shared hosting environments to compromise entire servers.
     - Android devices were vulnerable, risking unauthorized access to user data and system files.
