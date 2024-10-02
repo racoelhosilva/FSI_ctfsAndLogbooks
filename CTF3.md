@@ -1,6 +1,6 @@
 # CTF Semana #3 (Wordpress CVE)
 
-## Reconnaissance
+## Recognition
 
 To begin, we accessed the target at http://143.47.40.175:5001, navigated to the `Shop` section, and selected `WordPress Hosting`. From there, we reviewed the `Additional Information` at the following URL: http://143.47.40.175:5001/product/wordpress-hosting/.
 
@@ -24,7 +24,7 @@ The goal was to exploit a vulnerability that would allow administrative access. 
 
 ## Finding an Exploit
 
-A search for an exploit revealed a GitHub repository for `CVE-2023-2732`, which can be found at this [link](https://github.com/RandomRobbieBF/CVE-2023-2732).
+While searching for exploits, we discovered a GitHub repository containing an exploit for `CVE-2023-2732`, available [here](https://github.com/RandomRobbieBF/CVE-2023-2732).
 
 Although an attempt to execute the provided script resulted in errors, we analyzed the source code and identified two key functions:
 
@@ -55,6 +55,6 @@ The `fetch_usernames_rest_api` function allows us to extract user IDs, and `send
   <img src="./assets/ctf3/admin_id.png"/>
 </p>
 
-2. From the response, we identified that the administrator’s user ID is `1`.
-3. Using the `sendem` function, we crafted a URL to exploit the vulnerability by entering the following into the browser: http://143.47.40.175:5001/wp-json/wp/v2/add-listing?id=1. This effectively granted administrative permissions to our session.
+2. From the response, we identified that the Administrator's user ID is `1`.
+3. Using the `sendem` function, we crafted a URL to exploit the vulnerability by entering the following into the browser: http://143.47.40.175:5001/wp-json/wp/v2/add-listing?id=1. This effectively granted administrative permissions to our Session.
 4. We searched for common URL patterns used for the WordPress admin dashboard and identified http://143.47.40.175:5001/wp-admin/index.php as a potential entry point. Upon accessing this URL, we successfully reached the admin dashboard. From there, we navigated to the **Posts** section, where we found a post titled "Message for our Employers", which contained the CTF flag.
