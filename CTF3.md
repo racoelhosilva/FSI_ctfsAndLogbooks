@@ -1,4 +1,4 @@
-# CTF Semana #3 (Wordpress CVE)
+# CTF Week #3 (Wordpress CVE)
 
 ## Recognition
 
@@ -56,5 +56,5 @@ The `fetch_usernames_rest_api` function allows us to extract user IDs, and `send
 </p>
 
 2. From the response, we identified that the Administrator's user ID is `1`.
-3. Using the `sendem` function, we crafted a URL to exploit the vulnerability by entering the following into the browser: http://143.47.40.175:5001/wp-json/wp/v2/add-listing?id=1. This effectively granted administrative permissions to our Session.
+3. Using the `sendem` function, we crafted a URL to exploit the vulnerability by entering the following into the browser: http://143.47.40.175:5001/wp-json/wp/v2/add-listing?id=1. When trying to access this URL, the browser will start to load for a long time and, analyzing the requests, we can see that the same GET request to the URL is being executed in a loop, ending in a message saying "The page isn’t redirecting properly". However, the response to these requests come with cookies  with the admin login information, effectively granting administrative permissions to our session.
 4. We searched for common URL patterns used for the WordPress admin dashboard and identified http://143.47.40.175:5001/wp-admin/index.php as a potential entry point. Upon accessing this URL, we successfully reached the admin dashboard. From there, we navigated to the **Posts** section, where we found a post titled "Message for our Employers", which contained the CTF flag.
