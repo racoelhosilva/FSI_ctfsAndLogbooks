@@ -22,6 +22,8 @@ This search yielded four potential CVEs:
 
 The goal was to exploit a vulnerability that would allow administrative access. After analysis, the most applicable CVEs for this purpose were: `CVE-2023-2734`, `CVE-2023-2733`, and `CVE-2023-2732`.
 
+Since we needed to submit the vulnerability code as the first CTF flag, we got the confirmation that the vulnerability was indeed `CVE-2023-2732`.
+
 ## Finding an Exploit
 
 While searching for exploits, we discovered a GitHub repository containing an exploit for `CVE-2023-2732`, available [here](https://github.com/RandomRobbieBF/CVE-2023-2732).
@@ -57,4 +59,8 @@ The `fetch_usernames_rest_api` function allows us to extract user IDs, and `send
 
 2. From the response, we identified that the Administrator's user ID is `1`.
 3. Using the `sendem` function, we crafted a URL to exploit the vulnerability by entering the following into the browser: http://143.47.40.175:5001/wp-json/wp/v2/add-listing?id=1. When trying to access this URL, the browser will start to load for a long time and, analyzing the requests, we can see that the same GET request to the URL is being executed in a loop, ending in a message saying "The page isn’t redirecting properly". However, the response to these requests come with cookies  with the admin login information, effectively granting administrative permissions to our session.
-4. We searched for common URL patterns used for the WordPress admin dashboard and identified http://143.47.40.175:5001/wp-admin/index.php as a potential entry point. Upon accessing this URL, we successfully reached the admin dashboard. From there, we navigated to the **Posts** section, where we found a post titled "Message for our Employers", which contained the CTF flag.
+4. We searched for common URL patterns used for the WordPress admin dashboard and identified http://143.47.40.175:5001/wp-admin/index.php as a potential entry point. Upon accessing this URL, we successfully reached the admin dashboard. From there, we navigated to the **Posts** section, where we found a post titled "Message for our Employers", which contained the second CTF flag.
+
+## Vulnerability Remediation
+
+This vulnerability is caused by the MStore API plugin for WordPress not performing sufficient verification on the user being supplied during the add listing REST API request, for versions up to, and including, 3.9.2, as stated in [Wordfence](https://www.wordfence.com/threat-intel/vulnerabilities/wordpress-plugins/mstore-api/mstore-api-392-authentication-bypass). For this reason, the solution is to update the plugin to version 3.9.3, or a newer patched version.
