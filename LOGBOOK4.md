@@ -310,15 +310,46 @@ system ignores the LD_PRELOAD, so it sleep 1 second. -->
 
 ## Question 2
 
-### Task 8.1: Invoking External Programs Using `system()` versus `execve()`
+### Task 8.1: Invoking External Programs Using `system()`
 
-First, we need to compile the program and set it as a root-owned Set-UID executable.
+The goal of this task is exploit the privilege escalation of a Set-UID file that uses the `system()` call to execute commands.
+
+First, we need to compile the program given and set it as a root-owned Set-UID executable.
+
+```c
+#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+int main(int argc, char *argv[])
+{
+  char *v[3];
+  char *command;
+
+  if(argc < 2) {
+    printf("Please type a file name.\n");
+    return 1;
+  }
+
+  v[0] = "/bin/cat"; v[1] = argv[1]; v[2] = NULL;
+
+  command = malloc(strlen(v[0]) + strlen(v[1]) + 2);
+  sprintf(command, "%s %s", v[0], v[1]);
+
+  // Use only one of the followings.
+  system(command);
+  //execve(v[0], v, NULL);
+
+  return 0 ;
+}
+```
 
 <p align="center" justify="center">
   <img src="./assets/logbook_4/set_catall.png"/>
 </p>
 
-Next, we create the `adminfile`, which is readable, writable, and executable only by `root`:
+Next, in order to test this exploit, let's create the `adminfile`, which is readable, writable, and executable only by `root`:
 
 <p align="center" justify="center">
   <img src="./assets/logbook_4/adminfile.png"/>
@@ -326,11 +357,13 @@ Next, we create the `adminfile`, which is readable, writable, and executable onl
 
 > As discussed in Task 6, the command `sudo ln -sf /bin/zsh /bin/sh` is necessary to acquire elevated privileges when executing as the `seed` user.
 
-We can now test the `catall` program:
+We can now test the `catall` program, and ensure that it is able to `cat` the contents of the file as intended, while the normal `cat` command cannot.
 
 <p align="center" justify="center">
   <img src="./assets/logbook_4/runcatall.png"/>
 </p>
+
+However, by analyzing the source code, we can observe that the program concatenates `/bin/cat` with the provided input string (ideally a file or path). But since we are running the system call, this allows an attacker to inject additional commands using `&&` or `;`, followed by additional commands.
 
 ```c
 v[0] = "/bin/cat"; v[1] = argv[1]; v[2] = NULL;
@@ -339,10 +372,56 @@ command = malloc(strlen(v[0]) + strlen(v[1]) + 2);
 sprintf(command, "%s %s", v[0], v[1]);
 ```
 
-From the source code, we can observe that the program concatenates `/bin/cat` with the provided input string. This allows an attacker to inject additional commands using `&&.`
-
 <p align="center" justify="center">
   <img src="./assets/logbook_4/delete_lazy.png"/>
 </p>
 
-> After the concatenation `sprintf(command, "%s %s", v[0], v[1]);`, the resulting command is `/bin/cat adminfile && rm -rf adminfile`. The system executes `cat`, followed by `rm`, with root privileges. As shown, the adminfile was successfully deleted.
+> After the concatenation `sprintf(command, "%s %s", v[0], v[1]);`, the resulting command is `/bin/cat adminfile && rm -rf adminfile`.  
+> The system executes `cat`, followed by `rm`, with root privileges. As shown, the adminfile was successfully deleted.
+
+### Task 8.2: Invoking External Programs Using `execve()`
+
+This task, uses the same principle of the previous one (8.1) but instead of using `system()` in the `catall` file, we will use `execve()`:
+
+```c
+#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+int main(int argc, char *argv[])
+{
+  char *v[3];
+  char *command;
+
+  if(argc < 2) {
+    printf("Please type a file name.\n");
+    return 1;
+  }
+
+  v[0] = "/bin/cat"; v[1] = argv[1]; v[2] = NULL;
+
+  command = malloc(strlen(v[0]) + strlen(v[1]) + 2);
+  sprintf(command, "%s %s", v[0], v[1]);
+
+  // Use only one of the followings.
+  //system(command);
+  execve(v[0], v, NULL);
+
+  return 0 ;
+}
+```
+
+Once again, we will compile and make this file a Set-UID, as well as check ensure the correct shell is called, to allow for privilege escalation.
+
+<p align="center" justify="center">
+  <img src="./assets/logbook_4/set_catall.png"/>
+</p>
+
+This time, when we try to apply the same logic as the one before, we will not be able to execute a second command. This is due to the parameters that are passed to the execve call.
+
+Instead of running the entire string, execve receives a first argument specifying which binary should be executed and only then a second argument with the arguments which is passed as an array of strings.
+
+This means that when running `./catall "adminfile && rm -rf adminfile"` will call the function `/bin/cat "adminfile && rm -rf adminfile"`. This will return an error saying that there was no file found with that name.
+
+From this, we can conclude that the `execve` is not vulnerable to the same exploit as the `system` call, making the `catall` more secure.
