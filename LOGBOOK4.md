@@ -1,4 +1,7 @@
-# Environment Variable and Set-UID
+# Seedlab Week #4 (Environment Variable and Set-UID)
+
+
+
 <!-- 
 ## Task 1
 
@@ -110,7 +113,78 @@ FEUP=leic
 [09/29/24]seed@VM:~/.../Labsetup$   # isso e estranho
 ``` -->
 
-## Questão 1 - Task 6: The PATH Environment Variable and Set-UID Programs
+## Question 1
+
+<!--
+
+- Obtain env variables using "printenv" and "env"
+- Set and unset variables with `export` and `unset`
+
+- Create child process with fork
+- Child and parent processes have same env variables
+
+- Replace process with `execve`
+- Replaced process will only have the env variables if `environ` is passed to it -> `environ` is an array with the env variables
+
+- `system` creates a shell and executes a command, passing the env variables automatically
+
+- Set-UID program assumes the owner privileges can be created with `chmod` and `chown`
+- Their behavior can be affected by other users, e.g. with environment variables
+
+-->
+
+### Task 1: Manipulating Environment Variables
+
+This task consisted on learning some simple commands for manipulating environment variables:
+
+- The environment variables of a shell can be printed using `printenv` or `env`.
+- The command `export` sets an environment variable, while `unset` can be used to unset it.
+
+<p align="center" justify="center">
+  <img src="./assets/logbook_4/task1.png"/>
+</p>
+
+### Task 2: Passing Environment Variables from Parent Process to Child Process
+
+In this task, we learned more about the creation of child processes in the Unix operating systems (through the `fork()` system call) and how the environment variables are passed from the parent process to the child process.
+
+The `fork()` system call is used to create a child process, which is an almost identical copy of the parent process. We can check if the current process is the child or the process by checking the return value of `fork()`. With this task, we verified that the two processes will share the same environment variables.
+
+<p align="center" justify="center">
+  <img src="./assets/logbook_4/task2.png"/>
+</p>
+
+### Task 3: Environment Variables and `execve()`
+
+This task focused on the `execve()` system call. This function overwrites all the process data and code with the loaded program's, effectively replacing a process with a new one. To call this function, we give the executable path, the command-line arguments and a third parameter. In this task, we experimented passing `NULL` and `environ` as the third argument. In the first case, there was no output, but in the second case, the environment variables we're printed. This gives us the conclusion that the third argument of `execve()` specifies the environment variables of the new process, which can be confirmed by seeing the manual pages of `execve` and `environ` (`man execve environ`).
+
+<p align="center" justify="center">
+  <img src="./assets/logbook_4/task3.png"/>
+</p>
+
+### Task 4: Environment Variables and `system()`
+
+This task centered around `system()` function, which executes a command in a new shell (`/bin/sh`). In addition, all the environment variables of the calling process are passed to the shell process, which is verified on compiling and running the code given in this task (place in `mysystem.c` in our case).
+
+<p align="center" justify="center">
+  <img src="./assets/logbook_4/task4.png"/>
+</p>
+
+### Task 5: Environment Variable and Set-UID Programs
+
+This task aimed at the creation and usage of Set-UID programs.
+
+A Set-UID program assumes the owner privileges when executed, which allows the escalation of the user's privileges. Although the behavior of the program is set by its code, it can be affected using environment variables, which makes Set-UID programs susceptible to attacks.
+
+In this task, we first copied the program's code inside a C file (`set-uid.c`), compiled and converted it into a root Set-UID executable (using `chown` and `chmod`) and verified that some environment variables are exported to the process. We tried modifying the variables `PATH`, `LD_LIBRARY_PATH` and `TEST` (the latter being created by us) and we found out that any alterations to `PATH` and `TEST` are passed to the `set-uid.c` program, but `LD_LIBRARY_PATH` is not. 
+
+<p align="center" justify="center">
+  <img src="./assets/logbook_4/task5.png"/>
+</p>
+
+After searching for a while, we found out that this is due to a security mechanism of the [dynamic linker](https://man7.org/linux/man-pages/man8/ld.so.8.html) called secure-execution mode, which is triggered on (not only) Set-UID programs, that ignores certain changes to environment variables related to the dynamic linker operation.
+
+### Task 6: The PATH Environment Variable and Set-UID Programs
 
 First, create a malicious program named `ls.c` in a directory (e.g., `/home/seed`). 
 
@@ -220,7 +294,9 @@ root@VM:/home/seed/Desktop/week_4/Labsetup/code#
 * user1 case:
 system ignores the LD_PRELOAD, so it sleep 1 second. -->
 
-## Questão 2 - Task 8.1: Invoking External Programs Using `system()` versus `execve()`
+## Question 2
+
+### Task 8.1: Invoking External Programs Using `system()` versus `execve()`
 
 First, we need to compile the program and set it as a root-owned Set-UID executable.
 
