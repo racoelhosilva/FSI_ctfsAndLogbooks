@@ -424,4 +424,8 @@ Instead of running the entire string, execve receives a first argument specifyin
 
 This means that when running `./catall "adminfile && rm -rf adminfile"` will call the function `/bin/cat "adminfile && rm -rf adminfile"`. This will return an error saying that there was no file found with that name.
 
+<p align="center" justify="center">
+  <img src="./assets/logbook_4/task8-2.png"/>
+</p>
+
 From this, we can conclude that the `execve` is not vulnerable to the same exploit as the `system` call, making the `catall` more secure.
