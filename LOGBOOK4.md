@@ -138,6 +138,7 @@ FEUP=leic
 This task consisted on learning some simple commands for manipulating environment variables:
 
 - The environment variables of a shell can be printed using `printenv` or `env`.
+- To find a specific variable, we can use either `printenv <VAR>` or `env | grep <VAR>` (note that the second one can be used to find more complex expressions).
 - The command `export` sets an environment variable, while `unset` can be used to unset it.
 
 <p align="center" justify="center">
@@ -148,7 +149,9 @@ This task consisted on learning some simple commands for manipulating environmen
 
 In this task, we learned more about the creation of child processes in the Unix operating systems (through the `fork()` system call) and how the environment variables are passed from the parent process to the child process.
 
-The `fork()` system call is used to create a child process, which is an almost identical copy of the parent process. We can check if the current process is the child or the process by checking the return value of `fork()`. With this task, we verified that the two processes will share the same environment variables.
+The `fork()` system call is used to create a child process, which is an almost identical copy of the parent process. We can check if the current process is the child or the process by checking the return value of `fork()`. 
+
+With this task, we verified that the two processes resulting from a **fork** will **share the same environment variables**.
 
 <p align="center" justify="center">
   <img src="./assets/logbook_4/task2.png"/>
@@ -156,7 +159,13 @@ The `fork()` system call is used to create a child process, which is an almost i
 
 ### Task 3: Environment Variables and `execve()`
 
-This task focused on the `execve()` system call. This function overwrites all the process data and code with the loaded program's, effectively replacing a process with a new one. To call this function, we give the executable path, the command-line arguments and a third parameter. In this task, we experimented passing `NULL` and `environ` as the third argument. In the first case, there was no output, but in the second case, the environment variables we're printed. This gives us the conclusion that the third argument of `execve()` specifies the environment variables of the new process, which can be confirmed by seeing the manual pages of `execve` and `environ` (`man execve environ`).
+This task focused on the `execve()` system call. This function overwrites all the process data and code with the loaded program's, effectively replacing a process with a new one. To call this function, we give the executable path, the command-line arguments and a third parameter (the environment variables). 
+
+In this task, we experimented passing `NULL` and `environ` as the third argument. In the first case, there was no output, since there were no environment variables in the "new" process, but in the second case, the environment variables we're printed. 
+
+This gives us the conclusion that the third argument of `execve()` specifies the environment variables of the new process, which can be confirmed by seeing the manual pages of `execve` and `environ` (`man execve environ`).
+
+We used the value `environ` for the last parameter because in a Unix system, when we define an `extern char** environ` at the start of the program, it will contain all the environment variables. By passing this value to the `execve` call, we are keeping all of them in the new loaded program.
 
 <p align="center" justify="center">
   <img src="./assets/logbook_4/task3.png"/>
@@ -166,17 +175,21 @@ This task focused on the `execve()` system call. This function overwrites all th
 
 This task centered around `system()` function, which executes a command in a new shell (`/bin/sh`). In addition, all the environment variables of the calling process are passed to the shell process, which is verified on compiling and running the code given in this task (place in `mysystem.c` in our case).
 
+What happens underneath is that the `system()` call will actually run `/bin/sh -c command`, effectively keeping all of the environment variables in the command that will be executed.
+
 <p align="center" justify="center">
   <img src="./assets/logbook_4/task4.png"/>
 </p>
 
 ### Task 5: Environment Variable and Set-UID Programs
 
-This task aimed at the creation and usage of Set-UID programs.
+This task's aim was the creation and usage of Set-UID programs.
 
 A Set-UID program assumes the owner privileges when executed, which allows the escalation of the user's privileges. Although the behavior of the program is set by its code, it can be affected using environment variables, which makes Set-UID programs susceptible to attacks.
 
-In this task, we first copied the program's code inside a C file (`set-uid.c`), compiled and converted it into a root Set-UID executable (using `chown` and `chmod`) and verified that some environment variables are exported to the process. We tried modifying the variables `PATH`, `LD_LIBRARY_PATH` and `TEST` (the latter being created by us) and we found out that any alterations to `PATH` and `TEST` are passed to the `set-uid.c` program, but `LD_LIBRARY_PATH` is not. 
+In this task, we first copied the program's code inside a C file (`set-uid.c`), compiled and converted it into a root Set-UID executable (using `chown root` and `chmod 4755`) and verified that some environment variables are exported to the process. 
+
+We tried modifying the variables `PATH`, `LD_LIBRARY_PATH` and `TEST` (the latter being created by us) and we found out that any alterations to `PATH` and `TEST` are passed to the `set-uid.c` program, but `LD_LIBRARY_PATH` is not. 
 
 <p align="center" justify="center">
   <img src="./assets/logbook_4/task5.png"/>
