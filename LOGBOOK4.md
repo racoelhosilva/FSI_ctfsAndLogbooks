@@ -11,7 +11,7 @@ This task consisted on learning some simple commands for manipulating environmen
 - The command `export` sets an environment variable, while `unset` can be used to unset it.
 
 <p align="center" justify="center">
-  <img src="./assets/logbook_4/task1.png"/>
+  <img src="./assets/LOGBOOK4/task1.png"/>
 </p>
 
 ### Task 2: Passing Environment Variables from Parent Process to Child Process
@@ -23,7 +23,7 @@ The `fork()` system call is used to create a child process, which is an almost i
 With this task, we verified that the two processes resulting from a **fork** will **share the same environment variables**.
 
 <p align="center" justify="center">
-  <img src="./assets/logbook_4/task2.png"/>
+  <img src="./assets/LOGBOOK4/task2.png"/>
 </p>
 
 ### Task 3: Environment Variables and `execve()`
@@ -37,7 +37,7 @@ This gives us the conclusion that the third argument of `execve()` specifies the
 We used the value `environ` for the last parameter because in a Unix system, when we define an `extern char** environ` at the start of the program, it will contain all the environment variables. By passing this value to the `execve` call, we are keeping all of them in the new loaded program.
 
 <p align="center" justify="center">
-  <img src="./assets/logbook_4/task3.png"/>
+  <img src="./assets/LOGBOOK4/task3.png"/>
 </p>
 
 ### Task 4: Environment Variables and `system()`
@@ -47,7 +47,7 @@ This task centered around `system()` function, which executes a command in a new
 What happens underneath is that the `system()` call will actually run `/bin/sh -c command`, effectively keeping all of the environment variables in the command that will be executed.
 
 <p align="center" justify="center">
-  <img src="./assets/logbook_4/task4.png"/>
+  <img src="./assets/LOGBOOK4/task4.png"/>
 </p>
 
 ### Task 5: Environment Variable and Set-UID Programs
@@ -61,7 +61,7 @@ In this task, we first copied the program's code inside a C file (`set-uid.c`), 
 We tried modifying the variables `PATH`, `LD_LIBRARY_PATH` and `TEST` (the latter being created by us) and we found out that any alterations to `PATH` and `TEST` are passed to the `set-uid.c` program, but `LD_LIBRARY_PATH` is not. 
 
 <p align="center" justify="center">
-  <img src="./assets/logbook_4/task5.png"/>
+  <img src="./assets/LOGBOOK4/task5.png"/>
 </p>
 
 After searching for a while, we found out that this is due to a security mechanism of the [dynamic linker](https://man7.org/linux/man-pages/man8/ld.so.8.html) called secure-execution mode, which is triggered on (not only) Set-UID programs, that ignores certain changes to environment variables related to the dynamic linker operation.
@@ -109,13 +109,13 @@ After compiling our custom ls command, we add the directory `/home/seed` to the 
 > **Note**: To prevent shell countermeasures when executing a Set-UID program, run the following command (provided by the guide): `sudo ln -sf /bin/zsh /bin/sh`.
 
 <p align="center" justify="center">
-  <img src="./assets/logbook_4/myls.png"/>
+  <img src="./assets/LOGBOOK4/myls.png"/>
 </p>
 
 Finally, we can test `myls` program by executing `myls`
 
 <p align="center" justify="center">
-  <img src="./assets/logbook_4/run_myls.png"/>
+  <img src="./assets/LOGBOOK4/run_myls.png"/>
 </p>
 
 > The output show `root`, indicating that your malicious program has escalated privileges and is running as root.  
@@ -124,7 +124,7 @@ Finally, we can test `myls` program by executing `myls`
 After doing this exploit, to revert the changes run: `sudo ln -sf /bin/dash /bin/sh` and `export PATH=${PATH#/home/seed:}`.
 
 <p align="center" justify="center">
-  <img src="./assets/logbook_4/revert_changes.png"/>
+  <img src="./assets/LOGBOOK4/revert_changes.png"/>
 </p>
 
 ## Question 2
@@ -165,13 +165,13 @@ int main(int argc, char *argv[])
 ```
 
 <p align="center" justify="center">
-  <img src="./assets/logbook_4/set_catall.png"/>
+  <img src="./assets/LOGBOOK4/set_catall.png"/>
 </p>
 
 Next, in order to test this exploit, let's create the `adminfile`, which is readable, writable, and executable only by `root`:
 
 <p align="center" justify="center">
-  <img src="./assets/logbook_4/adminfile.png"/>
+  <img src="./assets/LOGBOOK4/adminfile.png"/>
 </p>
 
 > As discussed in Task 6, the command `sudo ln -sf /bin/zsh /bin/sh` is necessary to acquire elevated privileges when executing as the `seed` user.
@@ -179,7 +179,7 @@ Next, in order to test this exploit, let's create the `adminfile`, which is read
 We can now test the `catall` program, and ensure that it is able to `cat` the contents of the file as intended, while the normal `cat` command cannot.
 
 <p align="center" justify="center">
-  <img src="./assets/logbook_4/runcatall.png"/>
+  <img src="./assets/LOGBOOK4/runcatall.png"/>
 </p>
 
 However, by analyzing the source code, we can observe that the program concatenates `/bin/cat` with the provided input string (ideally a file or path), without perform any validation on the command-line argument. But since we are running the system call, this allows an attacker to inject additional commands using `&&` or `;`, followed by additional commands.
@@ -192,7 +192,7 @@ sprintf(command, "%s %s", v[0], v[1]);
 ```
 
 <p align="center" justify="center">
-  <img src="./assets/logbook_4/delete_lazy.png"/>
+  <img src="./assets/LOGBOOK4/delete_lazy.png"/>
 </p>
 
 > After the concatenation `sprintf(command, "%s %s", v[0], v[1]);`, the resulting command is `/bin/cat adminfile && rm -rf adminfile`.  
@@ -234,7 +234,7 @@ int main(int argc, char *argv[])
 Once again, we will compile and make this file a Set-UID, as well as check ensure the correct shell is called, to allow for privilege escalation.
 
 <p align="center" justify="center">
-  <img src="./assets/logbook_4/set_catall.png"/>
+  <img src="./assets/LOGBOOK4/set_catall.png"/>
 </p>
 
 This time, when we try to apply the same logic as the one before, we will not be able to execute a second command. This is due to the parameters that are passed to the `execve` call.
@@ -244,7 +244,7 @@ Instead of running the entire string, `execve` receives a first argument specify
 This means that when running `./catall "adminfile && rm -rf adminfile"` will call the function `/bin/cat "adminfile && rm -rf adminfile"`. This will return an error saying that there was no file found with that name.
 
 <p align="center" justify="center">
-  <img src="./assets/logbook_4/task8-2.png"/>
+  <img src="./assets/LOGBOOK4/task8-2.png"/>
 </p>
 
 From this, we can conclude that the `execve` is not vulnerable to the same exploit as the `system` call, making the `catall` more secure.

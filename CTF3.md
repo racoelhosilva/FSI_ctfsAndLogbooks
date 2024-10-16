@@ -6,7 +6,7 @@ To begin, we accessed the target at http://143.47.40.175:5001, navigated to the 
 This information about the software and versions already gave us a start for the research phase.
 
 <p align="center" justify="center">
-  <img src="./assets/ctf3/plugins.png"/>
+  <img src="./assets/CTF3/plugins.png"/>
 </p>
 
 ## CVE Research
@@ -16,7 +16,7 @@ Next, we conducted a vulnerability search via the [Search CVE List](https://cve.
 This search yielded four potential CVEs:
 
 <p align="center" justify="center">
-  <img src="./assets/ctf3/CVEs.png"/>
+  <img src="./assets/CTF3/CVEs.png"/>
 </p>
 
 ## CVE Selection
@@ -55,7 +55,7 @@ The `fetch_usernames_rest_api` function allows us to extract user IDs, and `send
 
 1. We started by accessing http://143.47.40.175:5001/wp-json/wp/v2/users and retrieving the list of users as a JSON response:
 <p align="center" justify="center">
-  <img src="./assets/ctf3/admin_id.png"/>
+  <img src="./assets/CTF3/admin_id.png"/>
 </p>
 
 2. From the response, we identified that the Administrator's user ID is `1`.
