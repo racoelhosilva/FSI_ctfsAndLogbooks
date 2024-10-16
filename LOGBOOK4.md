@@ -1,137 +1,6 @@
 # Seedlab Week #4 (Environment Variable and Set-UID)
 
-
-
-<!-- 
-## Task 1
-
-* `printenv` or `env` show all Env. Veriables
-* `printenv PWD` or `env | grep PWD` prints PWD variable
-* `export PWD=/home/seed` / `unset PWD` - sets or unset variable PWD
-
-## Task 2
-
-* `env` variables are equal for parent process and for child process when use `fork()` function.
-
-## Task 3
-
-### Task 3.1
-
-```c
-execve("/usr/bin/env", argv, environ);  
-```
-
-* returns `NULL`
-
-```c
-int execve(const char *filename, char *const argv[], char *const envp[]);
-
-extern char **environ;  # Env Veriables are not passed as a argument. 
-```
-
-### Task 3.2
-
-```c
-execve("/usr/bin/env", argv, environ);  
-```
-
-Env. Veriable are printed.
-
-### Task 3.3
-
-The Env Veriables must be explicetly passed.
-
----
-
-Brief explanation:
-
-* `fork()` is used to create a new process, which is a **copy of the calling** (parent) process.
-* `execve()` is used to **replace the current process** with a new program.
-
----
-
-## Task 4
-
-The `system()` executes `/bin/sh -c command`. It use `execl()` to use `/bin/sh` calls `execve` passing env.var. array.
-
-```c
-# prints all env.vars.
-
-#include <stdio.h>
-#include <stdlib.h>
-int main()
-{   
-    system("/usr/bin/env");
-    return 0 ;
-}
-```
-
-## Task 5
-
-The `Set-UID` programms gain owner’s privilege (e.g. if program's owner is `root`, when anyone runs this program, the program gains the root’s privileges during its execution).
-
-```c
-#include <stdio.h>
-#include <stdlib.h>
-
-extern char **environ;
-
-int main()
-{
-    int i = 0;
-    while (environ[i] != NULL) {
-        printf("%s\n", environ[i]);
-        i++;
-    }
-}
-```
-
-Compile and add set ownership to `root` and make it `Set-UID` programm.
-
-```bash
-sudo chown root foo
-sudo chmod 4755 foo
-```
-
-```bash
-[09/29/24]seed@VM:~/.../Labsetup$ printenv PATH
-/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:.:.
-[09/29/24]seed@VM:~/.../Labsetup$ printenv LD_LIBRARY_PATH
-[09/29/24]seed@VM:~/.../Labsetup$
-[09/29/24]seed@VM:~/.../Labsetup$ export FEUP=leic
-[09/29/24]seed@VM:~/.../Labsetup$ printenv FEUP
-leic
-```
-
-```bash
-[09/29/24]seed@VM:~/.../Labsetup$ foo | grep PATH
-WINDOWPATH=2
-PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:.:.
-[09/29/24]seed@VM:~/.../Labsetup$ foo | grep FEUP
-FEUP=leic
-[09/29/24]seed@VM:~/.../Labsetup$ foo | grep LD_LIBRARY_PATH
-[09/29/24]seed@VM:~/.../Labsetup$   # isso e estranho
-``` -->
-
 ## Question 1
-
-<!--
-
-- Obtain env variables using "printenv" and "env"
-- Set and unset variables with `export` and `unset`
-
-- Create child process with fork
-- Child and parent processes have same env variables
-
-- Replace process with `execve`
-- Replaced process will only have the env variables if `environ` is passed to it -> `environ` is an array with the env variables
-
-- `system` creates a shell and executes a command, passing the env variables automatically
-
-- Set-UID program assumes the owner privileges can be created with `chmod` and `chown`
-- Their behavior can be affected by other users, e.g. with environment variables
-
--->
 
 ### Task 1: Manipulating Environment Variables
 
@@ -201,7 +70,7 @@ After searching for a while, we found out that this is due to a security mechani
 
 The goal of this task is to explore how the PATH environment variable can be used to change the execution of Set-UID programs. 
 
-Let's start by creating a new program that calls the system’s `ls` command, as in guid:
+Let's start by creating a new program that calls the system’s `ls` command, as asked in the guide:
 ```c
 #include <stdlib.h>
 
@@ -211,11 +80,10 @@ int main()
     return 0;
 }
 ```
-> - Program calls the `system()` function to execute the `ls` command, but it doesn't specify the absolute path (`/bin/ls`)  
-> - The system will search for ls using the directories listed in the `PATH`, in order
+> Program calls the `system()` function to execute the `ls` command, but it doesn't specify the absolute path (`/bin/ls`)  
+> The system will search for ls using the directories listed in the `PATH`, in order
 
-* Compile this program using the command: `gcc myls.c -o myls`
-* Change the owner of the myls program to root and set it as a Set-UID program with the following commands: `sudo chown root myls` and `sudo chmod 4755 myls`.
+Then, we compile this program using the command: `gcc myls.c -o myls`, and we change the owner of the myls program to root and set it as a Set-UID program with the following commands: `sudo chown root myls` and `sudo chmod 4755 myls`.
 
 > By using `chown` and `chmod 4755`, we can make the `myls` program a Set-UID program owned by root. This means that when a normal user execute this program, it will run with root privileges — potentially leading to a *privilege escalation*.
 
@@ -231,14 +99,14 @@ int main()
     system("whoami");
 }
 ```
-> - The idea here is to create a fake `ls` program that does something different from the actual `/bin/ls` command.
-> - So we can replace a legitimate system programm with malicious code.
-> 
-Compile the `ls.c` program using the following command: `gcc ls.c -o ls`.
+> The idea here is to create a fake `ls` program that does something different from the actual `/bin/ls` command.
+> This way we can replace a legitimate system programm with malicious code.
+
+Then, we compile the `ls.c` program using the following command: `gcc ls.c -o ls`.
 
 After compiling our custom ls command, we add the directory `/home/seed` to the `PATH` environment variable to ensure the system executes your malicious `ls` program instead of the standard `ls`: `export PATH=/home/seed:$PATH`
 > As `system()` function runs `/bin/sh -c "<command>"` it inherits all environment variables from the calling process, including `PATH`.  
-> **Note**: To prevent shell countermeasures when executing a Set-UID program, run the following command (provided by guid): `sudo ln -sf /bin/zsh /bin/sh`.
+> **Note**: To prevent shell countermeasures when executing a Set-UID program, run the following command (provided by the guide): `sudo ln -sf /bin/zsh /bin/sh`.
 
 <p align="center" justify="center">
   <img src="./assets/logbook_4/myls.png"/>
@@ -258,55 +126,6 @@ After doing this exploit, to revert the changes run: `sudo ln -sf /bin/dash /bin
 <p align="center" justify="center">
   <img src="./assets/logbook_4/revert_changes.png"/>
 </p>
-
-
-<!-- ## Task 7
-
-### Task 7.1
-`mylib.c`:
-```c
-#include <stdio.h>
-void sleep (int s)
-{
-  printf("I am not sleeping!\n");
-}
-```
-```bash
-gcc -fPIC -g -c mylib.c                       # Compile mylib.c into an object file.
-gcc -shared -o libmylib.so.1.0.1 mylib.o -lc  # Link the object file into a shared library
-export LD_PRELOAD=./libmylib.so.1.0.1
-```
-
-* `-shared`: Tells the compiler to produce a shared object (dynamic library).
-* `-o libmylib.so.1.0.1`: Specifies the output file, which is the shared library named libmylib.so.1.0.1.
-* `mylib.o`: This is the object file from the previous step.
-* `-lc`: Links against the C standard library (libc). The -l flag tells the compiler to link with a library, and c specifies libc.
-* `export LD_PRELOAD=./libmylib.so.1.0.1`: This tells the system to load libmylib.so.1.0.1 before any other libraries when running a program.
-
-### Task 7.2
-
-* normal user: 
-```bash
-[09/30/24]seed@VM:~/.../code$ myprog
-I am not sleeping!
-```
-* normal user, but Set-UID:
-```bash
-[09/30/24]seed@VM:~/.../code$ myprog    # sleep 1 second
-[09/30/24]seed@VM:~/.../code$
-```
-> because a normal user cannot override standard library functions in a Set-UID program.
-
-* as root:
-```bash
-[09/30/24]seed@VM:~/.../code$ sudo su
-root@VM:/home/seed/Desktop/week_4/Labsetup/code# export LD_PRELOAD=./libmylib.so.1.0.1
-root@VM:/home/seed/Desktop/week_4/Labsetup/code# ./myprog 
-I am not sleeping!
-root@VM:/home/seed/Desktop/week_4/Labsetup/code# 
-```
-* user1 case:
-system ignores the LD_PRELOAD, so it sleep 1 second. -->
 
 ## Question 2
 
@@ -363,7 +182,7 @@ We can now test the `catall` program, and ensure that it is able to `cat` the co
   <img src="./assets/logbook_4/runcatall.png"/>
 </p>
 
-However, by analyzing the source code, we can observe that the program concatenates `/bin/cat` with the provided input string (ideally a file or path). But since we are running the system call, this allows an attacker to inject additional commands using `&&` or `;`, followed by additional commands.
+However, by analyzing the source code, we can observe that the program concatenates `/bin/cat` with the provided input string (ideally a file or path), without perform any validation on the command-line argument. But since we are running the system call, this allows an attacker to inject additional commands using `&&` or `;`, followed by additional commands.
 
 ```c
 v[0] = "/bin/cat"; v[1] = argv[1]; v[2] = NULL;
@@ -418,9 +237,9 @@ Once again, we will compile and make this file a Set-UID, as well as check ensur
   <img src="./assets/logbook_4/set_catall.png"/>
 </p>
 
-This time, when we try to apply the same logic as the one before, we will not be able to execute a second command. This is due to the parameters that are passed to the execve call.
+This time, when we try to apply the same logic as the one before, we will not be able to execute a second command. This is due to the parameters that are passed to the `execve` call.
 
-Instead of running the entire string, execve receives a first argument specifying which binary should be executed and only then a second argument with the arguments which is passed as an array of strings.
+Instead of running the entire string, `execve` receives a first argument specifying which binary should be executed and only then a second argument with the arguments which is passed as an array of strings.
 
 This means that when running `./catall "adminfile && rm -rf adminfile"` will call the function `/bin/cat "adminfile && rm -rf adminfile"`. This will return an error saying that there was no file found with that name.
 
