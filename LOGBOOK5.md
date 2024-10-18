@@ -101,7 +101,7 @@ In the experiment, if we set the program as SetUID, it will open a shell as `roo
   <img src="./assets/LOGBOOK5/task1-with-SetUID.png"/>
 </p>
 
-### Task 2 Understanding the Vulnerable Program
+### Task 2: Understanding the Vulnerable Program
 
 We were provided with code `stack.c`, that has a buffer overflow vulnerability, when we pass 517 bytes from `badfile` to buffer in `bug()` with size `BUFSIZE`. 
 
@@ -137,8 +137,8 @@ int main(int argc, char **argv)
 }
 ```
 
-To compile the program, we used the provided `Makefile` that use flags `-fno-stack-protector` and `-z execstack` to disable stack smashing detection and making the stack executable during compilation and setting the program to `Set-UID`, so executable will be owned by `admin`.
-As per the instructions in Moodle, we set L1 to 108. 
+To compile the program, we used the provided `Makefile` with the flags `-fno-stack-protector` and `-z execstack` to disable stack smashing detection and making the stack executable during compilation. It also executes the need commands to set the program to `Set-UID` and `admin` as the owner.
+As per the instructions in Moodle, we set L1 to 108 (100 + 8 * (our group number -> 1) = 108). 
 
 <p align="center" justify="center">
   <img src="./assets/LOGBOOK5/task2.png"/>
@@ -146,9 +146,28 @@ As per the instructions in Moodle, we set L1 to 108.
 
 ### Task 3 Launching Attack on 32-bit Program
 
+For this task, we had to edit the file `exploit.py`, run that code to produce a badfile and run the `stack-L1` executable on that file, creating a buffer overflow that would execute a shellcode.
+The overall idea would be to read the contents of the file, which causes a buffer overflow that would corrupt other memory regions (including the return address of the `bof` function). By writing shellcode to the memory and making the code return to that region, we would be able to execute the shellcode.  
+By analyzing the python file, we can see that there are 4 that can be changed, as depicted on the table below:
+
+| Variable | Meaning |
+|:---:|:---|
+| **shellcode** | String of code to be used as shellcode, these would correspond to the Assembly instructions that can open a shell program. Ideally, we would like the program to execute this code. |
+| **start** | Position where the shellcode would be located in the file (payload), after the specified offset |
+| **ret** | Memory address to where we would like to return after the `bof` function execution |
+| **offset** | Memory address offset between the start of the file and the position that stores the return address of the function |
+
+1. For the **shellcode** we can just paste the one showed above for 32-addresses.
+2. To find the correct offset, we would need to use gdb to analyze the memory addresses of the program.  
+  First, we need to get the address of the `$ebp` register, which contains ...  
+  Then, we find the memory address of the buffer which was just defined. By subtracting both of them, we are getting the offset corresponding to the function arguments and locally defined variables. In this case, it equals 116.
 <p align="center" justify="center">
   <img src="./assets/LOGBOOK5/task3.png"/>
 </p>
+3. A
+
+
+
 
 ```py
 #!/usr/bin/python3
