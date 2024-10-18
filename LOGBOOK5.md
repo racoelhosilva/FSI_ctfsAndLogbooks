@@ -161,9 +161,10 @@ To start, it is easier to test the exploit in the `stack-L1-dbg` file and execut
 
 1. For the **shellcode** we can just paste the one showed above for 32-bit.
 2. To find the correct offset, we would need to use gdb to analyze the memory addresses of the program.  
-  First, we need to get the address of the `$ebp` register (`p $ebp`), which contains `0xffffcb38`.
-  Then, we find the memory address of the buffer which was just defined (`p &buffer`).  
-  By subtracting both of them, we are getting the offset corresponding to the function arguments and locally defined variables. In this case, it equals 116, so, the address in which we want to write is the one right after that, therefore, the offset is 116 + 4 (because of 32-bit) = **120**.
+    * We started by launching GDB with `gdb stack-L1-dbg` and setting a breakpoint at the bof function using `b bof`. Then, run the program (`run`) and step into the function (`next`).
+    * First, we need to get the address of the `$ebp` register (`p $ebp`), which contains `0xffffcb38`.
+    * Then, we find the memory address of the buffer which was just defined (`p &buffer`).  
+    * By subtracting both of them, we are getting the offset corresponding to the function arguments and locally defined variables. In this case, it equals 116, so, the address in which we want to write is the one right after that, therefore, the offset is 116 + 4 (because of 32-bit) = **120**.
 <p align="center" justify="center">
   <img src="./assets/LOGBOOK5/task3.png"/>
 </p>
