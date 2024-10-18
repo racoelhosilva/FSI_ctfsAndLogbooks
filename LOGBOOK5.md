@@ -206,7 +206,7 @@ After running this code with `python3 exploit.py`, the badfile will be generated
 After successfully executing the attack in gdb, we can try to change the values to perform the exploit for the `stack-L1` file itself. The only difference we need to take into account is the ret address itself, as it will be a little different. There are two main methods to apply the exploit:
 
 - We can fill multiple spaces with the ret address needed, therefore increasing the chances for to execute the exploit
-- We can change the exeuction inside gdb to make sure everything the stack mimics the program execution outside of it.
+- We can change the execution inside gdb to make sure everything the stack mimics the program execution outside of it.
 
 We used the latter one. The commands needed to run this are the following:
 ``` bash
