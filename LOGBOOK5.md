@@ -92,13 +92,13 @@ int main(int argc, char **argv)
 After compilation and running this, we can observe that it launches a shell.
 
 <p align="center" justify="center">
-  <img src="./assets/LOGBOOK5/task1.png"/>
+  <img src="./assets/logbook_5/task1.png"/>
 </p>
 
 In the experiment, if we set the program as SetUID, it will open a shell as `root`.
 
 <p align="center" justify="center">
-  <img src="./assets/LOGBOOK5/task1-with-SetUID.png"/>
+  <img src="./assets/logbook_5/task1-with-SetUID.png"/>
 </p>
 
 ### Task 2: Understanding the Vulnerable Program
@@ -141,7 +141,7 @@ To compile the program, we used the provided `Makefile` with the flags `-fno-sta
 As per the instructions in Moodle, we set L1 to 108 (100 + 8 * (our group number -> 1) = 108). 
 
 <p align="center" justify="center">
-  <img src="./assets/LOGBOOK5/task2.png"/>
+  <img src="./assets/logbook_5/task2.png"/>
 </p>
 
 ### Task 3: Launching Attack on 32-bit Program
@@ -166,12 +166,12 @@ To start, it is easier to test the exploit in the `stack-L1-dbg` file and execut
     * Then, we find the memory address of the buffer which was just defined (`p &buffer`).  
     * By subtracting both of them, we are getting the offset corresponding to the function arguments and locally defined variables. In this case, it equals 116, so, the address in which we want to write is the one right after that, therefore, the offset is 116 + 4 (because of 32-bit) = **120**.
 <p align="center" justify="center">
-  <img src="./assets/LOGBOOK5/task3.png"/>
+  <img src="./assets/logbook_5/task3.png"/>
 </p>
 
   > Note: the 116 interval can also be explained by the 8 space address for the argument of the function and the following 108 for the buffer just created.
 3. The start value can be set in two ranges: from 0 to 116 - len(shellcode) or from 124 to 517 - len(shellcode). In this case, we choose start as 0. 
-4. Therefore, the ret value should be set to an address below (will point to NOP, eventually skippint and reaching the desired address) or equal to the start value, which is 0 correspond to buffer address (in this case: 0xffffcac4).
+4. Therefore, the ret value should be set to an address below (will point to NOP, eventually skipping and reaching the desired address) or equal to the start value, which is 0 correspond to buffer address (in this case: 0xffffcac4).
 
 So the final version of `exploit.py` would be:
 ```py
@@ -201,7 +201,7 @@ with open('badfile', 'wb') as f:
 
 After running this code with `python3 exploit.py`, the badfile will be generated and the exploit should be working if we execute it inside gdb, as shown below:
 <p align="center" justify="center">
-  <img src="./assets/LOGBOOK5/task3-l1.png"/>
+  <img src="./assets/logbook_5/task3-l1.png"/>
 </p>
 
 After successfully executing the attack in gdb, we can try to change the values to perform the exploit for the `stack-L1` file itself. The only difference we need to take into account is the ret address itself, as it will be a little different. There are two main methods to apply the exploit:
@@ -224,4 +224,15 @@ After this, we can just continue performing the same steps we did before to find
 
 # Question 2
 
+After generating the badfile and executing the attack, we can use the gdb tool to analyze the memory region affected. By going to the line after the execution of the buffer overflow (return of the bof function), we can print the contents of buffer and see our custom values there.
+
+<p align="center" justify="center">
+  <img src="./assets/logbook_5/task3.2.png"/>
+</p>
+
+The above image shows the relevant bytes of the buffer addresses in memory. We can conclude 3 different things that match what we expected from the previous tasks:
+
+- The memory region is **filled with `nop` (0x90)**. More specifically, `nop` go through the "ideal" buffer limit and overflow into other regions of memory, corrupting the data that was there.
+- Highlighted with **red**, we can see the **initial buffer addresses contain the shellcode** which we injected at the start of the buffer. These are the instructions that will be executed after we return from the function.
+- Highlighted in **blue**, we can see the **return address which was overwritten with the buffer overflow** in order to return to the desired memory location. In this case, it points to the start of the buffer, making it so that the shellcode is the next piece of code to be executed.
 
