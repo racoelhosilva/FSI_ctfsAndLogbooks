@@ -224,7 +224,17 @@ After this, we can just continue performing the same steps we did before to find
 
 # Question 2
 
-After generating the badfile and executing the attack, we can use the gdb tool to analyze the memory region affected. By going to the line after the execution of the buffer overflow (return of the bof function), we can print the contents of buffer and see our custom values there.
+After generating the badfile and executing the attack, we can use the gdb tool to analyze the memory region affected.
+
+* First, we started GDB using the command `gdb stack-L1-dbg`
+* Second, A breakpoint was set at the line with return statement of function `bof()`, where the buffer overflow occured, using the command `b 22`.
+* Then, execute the program by typing `run`.
+
+<p align="center" justify="center">
+  <img src="./assets/logbook_5/step3.2-init.png"/>
+</p>
+
+* Finaly, by entering `x/517c &buffer` we see contents of the buffer:
 
 <p align="center" justify="center">
   <img src="./assets/logbook_5/task3.2.png"/>
