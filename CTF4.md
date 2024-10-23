@@ -14,7 +14,7 @@ There are also two buttons, one at the top and one on the bottom of the main pag
   <img src="./assets/CTF4/step2.png"/>
 </p>
 
-Other than that, the most relevant element is the list of the installed software on the server, allegedly obtained through the command `apt list --installed`
+Other than that, the most relevant element is the list of the installed software on the server, allegedly obtained through the command `apt list --installed`.
 
 <p align="center" justify="center">
   <img src="./assets/CTF4/step3.png"/>
@@ -57,7 +57,7 @@ Now, we needed to know how to insert this vulnerable command. The only input fie
 
 ## Exploiting the Vulnerability
 
-Given the test command, and considering that the path query is stored in the environment variable `path`, we inserted the query `'() { :;}; grep -lR "flag{" /'` on the path query. We replaced the command `echo vulnerable` with `grep -lR "flag{" /`, which searches the string `"flag{"` on all the server's files. For the same reason, the command needs a few minutes to finish.
+Given the test command, and considering that the path query is stored in the environment variable `path`, we inserted the query `'() { :;}; grep -R "flag{" /'` on the path input. We replaced the command `echo vulnerable` with `grep -R "flag{" /`, which searches the string `"flag{"` on all the server's files. For the same reason, the command needs a few minutes to finish.
 
 After some time, we received the result, which includes the flag and concludes the CTF!
 
