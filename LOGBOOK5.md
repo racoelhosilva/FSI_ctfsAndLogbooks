@@ -159,13 +159,13 @@ By analyzing the python file, we can see that there are 4 variables that can be 
 
 To start, it is easier to test the exploit in the `stack-L1-dbg` file and execute the exploit inside the gdb. The following list will contain the steps to fill each of the variables needed for the exploit.
 
-1. For the **shellcode** we can just paste the one showed above for 32-bit.
-2. To find the correct offset, we would need to use gdb to analyze the memory addresses of the program
+1. For the **shellcode** we can just paste the 32-bit version showed above.
+2. To find the correct `offset`, we would need to use gdb to analyze the memory addresses of the program
     * We started by launching GDB with `gdb $PWD/stack-L1-dbg` and setting a breakpoint at the bof function using `b bof`. Then, run the program (`run`) and step into the function (`next`).
     * Thinking already on applying the exploit on the primary executable, since the memory addresses will not be the same, we have two alternatives:
       - We can fill multiple spaces with the ret address needed, therefore increasing the chances to execute the exploit
       - We can change the execution inside gdb to make sure everything the stack mimics the program execution outside of it.
-      To make the exploit work with both the debug and non-debug version, we used the latter one. This way, we executed the following commands in `gdb`:
+    * To make the exploit work with both the debug and non-debug version, we used the latter one. This way, we executed the following commands in `gdb`:
 
       ```bash
       $ <PWD>/stack-L1-dbg # this is how we are going to execute the command
@@ -186,8 +186,8 @@ To start, it is easier to test the exploit in the `stack-L1-dbg` file and execut
 </p>
 
   > Note: the 116 interval can also be explained by the 8 space address for the argument of the function and the following 108 for the buffer just created.
-3. The start can be placed anywhere in the buffer, as long as it does not overwrite other information essential to execution, like the return address. In this case, we chose to place the shellcode at the end of the buffer, to take advantage of filling the rest of the buffer with NOP's (this makes the solution more flexible to address variations, which will be useful for exploiting the non-debug program). 
-4. Finally, the ret value should be set to an address below (which will point to the NOP's, eventually skipping and reaching the desired address) or equal to the address where the shellcode starts, as long as it's above the address pointed by `$ebp`. Since there may be some more stack data after `$ebp`, we set it to a value much higher than `$ebp` (but still before the shellcode address).
+3. The `start` can be placed anywhere in the buffer, as long as it does not overwrite other information essential to execution, like the return address. In this case, we chose to place the shellcode at the end of the buffer, to take advantage of filling the rest of the buffer with NOP's (this makes the solution more flexible to address variations, which will be useful for exploiting the non-debug program). 
+4. Finally, the `ret` value should be set to an address below (which will point to the NOP's, eventually skipping and reaching the desired address) or equal to the address where the shellcode starts, as long as it's above the address pointed by `$ebp`. Since there may be some more stack data after `$ebp`, we set it to a value much higher than `$ebp` (but still before the shellcode address).
 
 So the final version of `exploit.py` would be:
 ```py
@@ -244,7 +244,7 @@ After generating the badfile and executing the attack, we can use the gdb tool t
   <img src="./assets/LOGBOOK5/task-3.2-init.png"/>
 </p>
 
-* Finaly, by entering `x/517c &buffer` we see contents of the buffer:
+* Finaly, by entering `x/517c &buffer`, we see the contents of the buffer:
 
 <p align="center" justify="center">
   <img src="./assets/LOGBOOK5/task-3.2-1.png"/>
