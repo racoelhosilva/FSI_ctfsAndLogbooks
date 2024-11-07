@@ -32,7 +32,7 @@ As shown in the output, the line `(^_^)(^_^) Returned properly (^_^)(^_^)` is mi
 
 ### Task 2: Printing Out the Server Program's Memory
 
-#### Task 2.A: Stack Data.
+#### Task 2.A: Stack Data
 
 In this task, we aimed to print data from the stack and determine how many `%x` specifiers are needed to print the first 4 bytes of our input.
 
@@ -98,7 +98,7 @@ At the end of the output, we saw the string `"A secret message"`, confirming tha
 
 ### Task 3: Modifying the Server Program's Memory
 
-#### Task 3.A: Change the value to a different value.
+#### Task 3.A: Change the value to a different value
 
 In this task, our objective was to modify the value of a specific variable, `target`, in the server's memory. The original value of this variable was `0x11223344`, as displayed in the server's output, and its address in memory was `0x080e5068`.
 
@@ -126,7 +126,7 @@ We placed the address of our target variable at the start of the payload, then s
 
 In the server output, we can see `The target variable's value (before): 0x11223344` and `The target variable's value (after): 0x000000ee`. This confirms that we successfully modified the target variable's value from `0x11223344` to `0x000000ee`.
 
-#### Task 3.B
+#### Task 3.B: Change the value to 0x5000
 
 Based on the previous task which already overwrites the target variable, we know have to find a way to control which value is placed in that memory address. More specifically, we have to write the value `0x5000` into that memory address.
 
