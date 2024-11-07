@@ -62,15 +62,15 @@ We observed that the value `41414141` (hexadecimal representation of `AAAA`) app
 #### Task 2.B: Heap Data
 
 In this attack the objective was to read a string from a specific address printed by the server:
-<!-- Ele sempre o mesmo? -->
-```bash
+
+```
 server-10.9.0.5 | The secret message's address:  0x080b4008
 ```
 Steps to achieve this:
 
 1. Place the address of the secret message (`0x080b4008`) at the beginning of the payload.
-2. Use 63 consequences `%x` to skip 63 values on the stack (based on the previous task, where 63 values precede our written bytes).
-3. Add single `%s` to instruct the server to read a string from the stack, which will be the address we placed in the step 1.
+2. Use 63 repetitions of `%x` to skip 63 address positions on the stack (based on the previous task, where 63 * 4 bytes precede the bytes we wrote).
+3. Add a single `%s` to instruct the server to read a string from the stack, which will be the address we placed in the step 1.
 
 The final `build_string.py` code:
 
@@ -86,15 +86,15 @@ with open('badfile', 'wb') as f:
   f.write(payload)
 ```
 
-We ran `python3 build_string.py` then sent `echo hello` to verify the string's address and then used our `badfile` to read a string (`cat badfile | nc 10.9.0.5 9090`).
+We ran `python3 build_string.py`, then sent `echo hello` to verify the string's address and then used our `badfile` to read the string (`cat badfile | nc 10.9.0.5 9090`).
 
-The output:
+With that, we received the following output:
 
 <p align="center" justify="center">
   <img src="./assets/LOGBOOK6/task2b.png"/>
 </p>
 
-At the end of the output, we saw the string `"A secret message"`, confirming that we successfully read data from the heap.
+At the end of the output, we saw the string `"A secret message"`, confirming that we successfully read the message from the heap.
 
 ### Task 3: Modifying the Server Program's Memory
 
@@ -128,9 +128,9 @@ In the server output, we can see `The target variable's value (before): 0x112233
 
 #### Task 3.B
 
-Based on the previous task which already overwrites the target variable, we know have to find a way to control which value is placed in that memory address. More specifically, we have to write the value 0x5000 into that memory address.
+Based on the previous task which already overwrites the target variable, we know have to find a way to control which value is placed in that memory address. More specifically, we have to write the value `0x5000` into that memory address.
 
-For this, we will still use the `%n` specifier to write the value in the designated address, but we will also use the `%x` to control the number of bytes read from the stack.
+For this, we will still use the `%n` specifier to write the value in the designated address, but we will also use the last `%x` to control the number of characters printed.
 
 ```python
 import sys
@@ -151,7 +151,7 @@ with open('badfile', 'wb') as f:
   f.write(content)
 ```
 
-By doing this, we start by writing the designated address we want to overwrite in the start of the buffer. After this, the printf will start by executing the `%.8x` which will print 8 chars and advance 4 addresses in memory. Then, it will execute the `%.{n}x` which will print the n characters and advance 4 positions in memory. Finally, it will write the value of printed chars (0x5000) to the address initially defined (0x080e5068), using the `%n`.
+By doing this, we start by writing the designated address we want to overwrite in the start of the buffer. After this, the printf will start by executing the `%.8x` which will print 8 characters and advance 4 bytes in stack memory, a total of 62 times. Then, it will execute the `%.{n}x` which will print the n characters and advance one more address in memory. Finally, it will write the value of printed chars (`0x5000`) to the address initially defined (`0x080e5068`), using the `%n` format specifier.
 
 <p align="center" justify="center">
   <img src="./assets/LOGBOOK6/task3b.png"/>
@@ -163,7 +163,7 @@ In the server output, we can see `The target variable's value (before): 0x112233
 
 The attacks we performed along the tasks are caused by the weakness CWE-134 "Use of Externally-Controlled Format String". According to [CWE Mitre](https://cwe.mitre.org/data/definitions/134.html), this weakness is observed when a function accepts a format string, originated from an external source (e.g. user input), as its argument.
 
-Since a user string can be stored in the heap, just as in the stack, we can also observe a vulnerability if the format string is allocated dynamically. For example, we can use something similar to the exploit on task 2.A to read everything from the stack, which can include sensitive data.
+Since a user string can be stored in the heap, just as in the stack, we can also observe a vulnerability if the format string is allocated dynamically. For example, we can use something similar to the exploit on task 2.A to read information from the stack, which can include sensitive data.
 
-However, for running the attacks we used on this guide, we need to store the address in memory we want to read/write to in a position that can be interpreted by `printf` as the address of one of its arguments. This means that the value needs to be stored on the stack, so it cannot be influenced by information of the format string, making all the attacks we performed unreliable. It can only be done by using non-deterministic solutions, such as using pre-existing stack values.
+However, for running the attacks we used on this guide, we need to store the address in memory we want to read/write to in a position that can be interpreted by `printf` as the address of one of its arguments. This means that the value needs to be stored on the stack, so it cannot be influenced by information of the format string, making all the attacks we performed infeasible. It can only be done by using non-deterministic solutions, such as using pre-existing stack values.
 
