@@ -1,9 +1,9 @@
 # CTF Week #5 (Buffer Overflow)
 
-## Exploring
+## Recognition
 
 For this CTF, we were given the zip file containing: 
- - an exacutable program that is running on the server (`program`)
+ - an executable program that is running on the server (`program`)
  - the source code of the executable (`main.c`)
  - a python script (`exploit-template.py`)
 
@@ -20,22 +20,22 @@ From the output, we understand that:
 * The program is not compiled as Position-Independent Executable (PIE).
 * There are segments with both Read, Write, and Execute (RWX) permissions.
 
-## Code Analysis
+## Finding an Exploit
 
-Analysing the source code given, we can see that:
+Analyzing the source code given, we can see that:
 1. The program has a function `readtxt(char* name)` that takes a file name as input and reads it using the `cat` command. The filename, without the extension, should be fewer than 6 characters.
 2. If we can set the parameter `name` in the `readtxt` function and invoke it by modifying the `fun` function pointer, we will be able to get the flag.
 3. There is a buffer overflow vulnerability in the code:
     * On line 18, a buffer is defined with a size of 32 bytes: `char buffer[32];`.
     * On line 26, the program uses `scanf("%45s", &buffer);`, which reads up to 45 bytes from standard input into the buffer, allowing for a potential overflow.
 
-## Attack
+## Exploiting the Vulnerability
 
-Based on the previous analysis, our idea was to overwrite the `fun` function pointer to point to `readtxt` and set the parameter to "`flag`". That way, the code would continue its "normal" execution and run the function `readtxt(flag)`.
+Based on the previous analysis, our idea was to overwrite the `fun` function pointer to point to `readtxt`, when called with `buffer`, and set the parameter to "`flag`". That way, the code would continue its "normal" execution and run the function `readtxt("flag")`.
 
 ### Step 1: Locate the `fun` Pointer
 
-First, we run GDB and found addresses of `readtxt` and `echo` functions:
+First, we run GDB to find the addresses of `readtxt` and `echo` functions:
 
 <p align="center" justify="center">
   <img src="./assets/CTF5/step2.png"/>
@@ -54,10 +54,10 @@ We observed that at stack address `0xffffd040`, the first 4 bytes were changing 
 
 ### Step 2: Setting the Parameter to `"flag"`
 
-To exploit the vulnerability, we will set the `fun` function pointer to `readtxt` using the payload: `AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\xa5\x97\x04\x08` with 32 bytes and address of `readtxt`
-> Note: address of `readtxt` - `0x080497a5` is written as `\xa5\x97\x04\x08` in little-endian format.
+To exploit the vulnerability, we will set the `fun` function pointer to `readtxt` using the payload: `AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\xa5\x97\x04\x08` with 32 bytes and the address of `readtxt`.
+> Note: The address of `readtxt` - `0x080497a5` is written as `\xa5\x97\x04\x08` in little-endian format.
 
-After running the payload, we got the following output:
+After sending the payload, we got the following output:
 
 <p align="center" justify="center">
   <img src="./assets/CTF5/step4.png"/>
@@ -71,7 +71,7 @@ With this payload, we successfully retrieved the flag:
   <img src="./assets/CTF5/step5.png"/>
 </p>
 
-## Submit on server
+## Attack
 
 As a last step we needed to uncomment line 5 to use with a server.
 The final version of `exploit-template.py` is:
