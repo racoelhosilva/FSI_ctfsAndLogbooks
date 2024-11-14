@@ -4,11 +4,15 @@
 
 In this CTF, we have two resources that we need to analyze.
 
-<!-- TODO: Put information about the website -->
+The first is a web page. After opening it, we get the following message:
+
+<p align="center" justify="center">
+    <img src="./assets/CTF6/website.png">
+</p>
 
 The second is a zip file that is included in the CTF description. Extracting this archive reveals its contents: an executable `program`, along with that appears to be its source code file `main.c`, two text files `rules.txt` and `flag.txt` and a python script named `exploit-template.py`, which constitutes a template for sending a payload to the program. This script imports the `pwn` module, which means that it uses the [pwntools library](https://docs.pwntools.com/en/stable/), a CTF framework commonly used to create exploit scripts.
 
-If we execute the program, we see also an output very similar to the one we saw on the website. This suggests that the web server we need to exploit also uses the same executable, and also has a `rules.txt` files, because it prints its contents, and a `flag.txt` (by association). The `flag.txt` that was provided on the zip only contains a dummy flag (`flag{asd}`), so we predict that the file in the server contains the real flag, and we must find a way to exploit the program into printing its contents.
+If we execute the program, we see also an output very similar to the one we saw on the website. This suggests that the web server we need to exploit also uses the same executable, and also has a `rules.txt` files, because it prints its contents, and a `flag.txt` (by association). The `flag.txt` that was provided on the zip only contains a dummy flag, so we predict that the file in the server contains the real flag, and we must find a way to exploit the program into printing its contents.
 
 ## Finding an Exploit
 
@@ -28,8 +32,8 @@ As we see, the executable does not present stack canaries (`No canary found`), t
 
 From this, we conclude this is a 32-bit executable.
 
-From here, we proceed to reading the program's source-code. We can observe the declaration of two functions: `readtxt`, which prints the contents of a text file, with a filename (without `.txt` extension) up to 6 characters in length, and `echo`, which prints the given string. The main function seems to use both functions by assigning their addresses to a function pointer called `fun`. The program:
-  1. Prints the rules, calling `readtxt` with `file.txt`.
+From here, we proceed to reading the program's source-code. We can observe the declaration of two functions: `readtxt`, which reads the contents of a text file using the `cat` command inside a call to `system`, with a filename (without `.txt` extension) up to 6 characters in length, and `echo`, which prints the given string. The main function seems to use both functions by assigning their addresses to a function pointer called `fun`. The program:
+  1. Reads the rules, calling `readtxt` with `rules.txt`.
   2. Gives a "hint", which is the address of the `fun` variable (not the address of the function it points to)
   3. Reads the input of the user and prints it using `printf`
   4. Makes an additional call to `echo` with the user input, also printing the address of the called function (`echo`) in both hexadecimal and decimal format.
@@ -69,7 +73,7 @@ writes = {
 }
 prefix = b"./flag.."
 numbwritten = len(prefix)
-offset = numbwritten // 4
+offset = numbwritten // 4 + 1
 payload = prefix + fmtstr_payload(offset, writes, numbwritten=numbwritten)
 print(f"Payload: ", payload)
 
@@ -84,4 +88,6 @@ The script will:
 
 With this, we can execute with `python exploit-template.py`, that executes the exploit on the local executable, and it effectively prints the dummy flag. To apply it on the remote server, we change the line `r = process('./program')` to `r = process('ctf-fsi.fe.up.pt', <port>)`. After executing, we successfully obtain the flag!
 
-<!-- TODO: Insert image -->
+<p align="center" justify="center">
+  <img src="./assets/CTF6/flag.png">
+</p>
