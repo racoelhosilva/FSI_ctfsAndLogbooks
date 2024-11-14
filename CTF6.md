@@ -10,13 +10,17 @@ The first is a web page. After opening it, we get the following message:
     <img src="./assets/CTF6/website.png">
 </p>
 
-The second is a zip file that is included in the CTF description. Extracting this archive reveals its contents: an executable `program`, along with that appears to be its source code file `main.c`, two text files `rules.txt` and `flag.txt` and a python script named `exploit-template.py`, which constitutes a template for sending a payload to the program. This script imports the `pwn` module, which means that it uses the [pwntools library](https://docs.pwntools.com/en/stable/), a CTF framework commonly used to create exploit scripts.
+The second is a zip file that is included in the CTF description. Extracting this archive reveals its contents: 
+ - an executable `program`
+ - the source code file `main.c`
+ - two text files `rules.txt` and `flag.txt`
+ - a python script named `exploit-template.py`, which constitutes a template for sending a payload to the program. This script imports the `pwn` module, which means that it uses the [pwntools library](https://docs.pwntools.com/en/stable/), a CTF framework commonly used to create exploit scripts.
 
 If we execute the program, we see also an output very similar to the one we saw on the website. This suggests that the web server we need to exploit also uses the same executable, and also has a `rules.txt` files, because it prints its contents, and a `flag.txt` (by association). The `flag.txt` that was provided on the zip only contains a dummy flag, so we predict that the file in the server contains the real flag, and we must find a way to exploit the program into printing its contents.
 
 ## Finding an Exploit
 
-The first thing we'll do to exploit the program is running `checksec` on it, to check all of its security protections.
+The first thing we'll do to analyze the program is running `checksec` on it, to check all of its security protections.
 
 <p align="center" justify="center">
     <img src="./assets/CTF6/checksec.png">
@@ -32,7 +36,8 @@ As we see, the executable does not present stack canaries (`No canary found`), t
 
 From this, we conclude this is a 32-bit executable.
 
-From here, we proceed to reading the program's source-code. We can observe the declaration of two functions: `readtxt`, which reads the contents of a text file using the `cat` command inside a call to `system`, with a filename (without `.txt` extension) up to 6 characters in length, and `echo`, which prints the given string. The main function seems to use both functions by assigning their addresses to a function pointer called `fun`. The program:
+Having seen this, we proceed to reading the program's source-code. We can observe the declaration of two functions: `readtxt`, which reads the contents of a text file using the `cat` command inside a call to `system`, with a filename (without `.txt` extension) up to 6 characters in length, and `echo`, which prints the given string. The main function seems to use both functions by assigning their addresses to a function pointer called `fun`.  
+The flow of the program is the following:
   1. Reads the rules, calling `readtxt` with `rules.txt`.
   2. Gives a "hint", which is the address of the `fun` variable (not the address of the function it points to)
   3. Reads the input of the user and prints it using `printf`
@@ -40,7 +45,8 @@ From here, we proceed to reading the program's source-code. We can observe the d
 
 One way to print the contents of `flag.txt` is to overwrite the value of `fun` to point to `readtxt` instead of `echo`. Our first idea was to apply a similar exploit we used on the previous CTF, using a stack buffer overflow. However, this program does not suffer from this vulnerability, since it stores the user input in a buffer with 100 characters and only reads 99 (even terminating the buffer with a null character).
 
-Upon further inspection, we see that, on the `printf` call, instead of printing the contents of `buffer` safely (using `printf("%s", buffer)`), it uses `buffer` as a format string. This means that the program suffers from a format strings vulnerability, and suggests that we do our desired action (change `fun`) by using a malicious input that will be interpreted as a format string.
+Upon further inspection, we see that, on the `printf` call, instead of printing the contents of `buffer` safely (using `printf("%s", buffer)`), it uses `buffer` as a format string (`printf(buffer)`).  
+This means that the program suffers from a **Format String vulnerability**, and suggests that we do our desired action (change `fun`) by using a malicious input that will be interpreted as a format string.
 
 ## Exploiting the Vulnerability
 
