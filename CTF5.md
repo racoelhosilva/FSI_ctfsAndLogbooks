@@ -2,7 +2,12 @@
 
 ## Exploring
 
-First, we run `checksec program` to find if it has any countermeasures.
+For this CTF, we were given the zip file containing: 
+ - an exacutable program that is running on the server (`program`)
+ - the source code of the executable (`main.c`)
+ - a python script (`exploit-template.py`)
+
+One of the first we can do is run `checksec program` to discover more information about the executable and find if it has any countermeasures.
 
 <p align="center" justify="center">
   <img src="./assets/CTF5/step1.png"/>
@@ -12,11 +17,12 @@ From the output, we understand that:
 * The architecture is x86 with a 32-bit address space.
 * The screenshot shows that there is protection on the return address (stack canary), but this only appeared on some computers and shouldn't influence the overall CTF.
 * The NX (No eXecute) bit is disabled, meaning we can execute code on the stack.
-* The program is not compiled as Position-Independent Executable (PIE). <!-- precisa de esplicar isso? -->
+* The program is not compiled as Position-Independent Executable (PIE).
 * There are segments with both Read, Write, and Execute (RWX) permissions.
 
 ## Code Analysis
 
+Analysing the source code given, we can see that:
 1. The program has a function `readtxt(char* name)` that takes a file name as input and reads it using the `cat` command. The filename, without the extension, should be fewer than 6 characters.
 2. If we can set the parameter `name` in the `readtxt` function and invoke it by modifying the `fun` function pointer, we will be able to get the flag.
 3. There is a buffer overflow vulnerability in the code:
@@ -25,7 +31,7 @@ From the output, we understand that:
 
 ## Attack
 
-The strategy was to overwrite the `fun` function pointer to point to `readtxt` and set the parameter to "`flag`".
+Based on the previous analysis, our idea was to overwrite the `fun` function pointer to point to `readtxt` and set the parameter to "`flag`". That way, the code would continue its "normal" execution and run the function `readtxt(flag)`.
 
 ### Step 1: Locate the `fun` Pointer
 
@@ -68,8 +74,8 @@ With this payload, we successfully retrieved the flag:
 ## Submit on server
 
 As a last step we needed to uncomment line 5 to use with a server.
-
 The final version of `exploit-template.py` is:
+
 ```py
 from pwn import *
 
@@ -85,6 +91,7 @@ print(buf)
 
 When running the exploit, we obtained the flag:
 
+<!-- TODO: Obfuscate the flag -->
 <p align="center" justify="center">
   <img src="./assets/CTF5/step6.png"/>
 </p>
