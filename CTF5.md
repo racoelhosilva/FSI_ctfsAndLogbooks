@@ -10,7 +10,7 @@ First, we run `checksec program` to find if it has any countermeasures.
 
 From the output, we understand that:
 * The architecture is x86 with a 32-bit address space.
-* There is no protection on the return address (no stack canary).
+* The screenshot shows that there is protection on the return address (stack canary), but this only appeared on some computers and shouldn't influence the overall CTF.
 * The NX (No eXecute) bit is disabled, meaning we can execute code on the stack.
 * The program is not compiled as Position-Independent Executable (PIE). <!-- precisa de esplicar isso? -->
 * There are segments with both Read, Write, and Execute (RWX) permissions.
