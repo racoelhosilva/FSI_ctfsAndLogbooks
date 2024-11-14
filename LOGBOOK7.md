@@ -68,7 +68,7 @@ We opened the `Header Live` and logged in as Samy (`samy`, `seedsamy`). We then 
 
 By analyzing the first request we are able to retrieve all the information necessary. We discovered that it was a `GET` request with this url: `http://www.seed-server.com/action/friends/add?friend=56&__elgg_ts=1731083830&__elgg_token=-TLgvgywckY6XBpLAcdx4w&__elgg_ts=1731083830&__elgg_token=-TLgvgywckY6XBpLAcdx4w`
 
-#### JavaScript Worm
+#### Performing the Attack
 
 For the next step, we modified the script template to send a request to add a friend, using the request structure previously analyzed. The final result of this script was the following:
 
