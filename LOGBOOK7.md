@@ -11,7 +11,7 @@ Programm to insert:
 <script>alert('XSS');</script>
 ```
 
-First, we logged in with the `alice` username and `seedalice` password. Then, we navigated to Alice's profile page at `http://www.seed-server.com/profile/alice`, clicked on `Edit profile`, and pasted the JavaScript program into the `Brief description` field before and Save it.
+First, we logged in with the `alice` username and `seedalice` password. Then, we navigated to Alice's profile page at `http://www.seed-server.com/profile/alice`, clicked on `Edit profile`, selected the option to edit as HTML, pasted the JavaScript script into the `Brief description` field before and saved it.
 
 As a result, any user who opened our profile page saw an alert window on the screen:
 
@@ -74,7 +74,8 @@ We opened the `Header Live` and logined as a Samy (`samy`, `seedsamy`) and opene
 
 We inspected the first request to retrieve all the necessary information.
 
-It is `GET` request with this url: `http://www.seed-server.com/action/friends/add?friend=56&__elgg_ts=1731083830&__elgg_token=-TLgvgywckY6XBpLAcdx4w&__elgg_ts=1731083830&__elgg_token=-TLgvgywckY6XBpLAcdx4w`
+We discovered that it was a `GET` request with this url: `http://www.seed-server.com/action/friends/add?friend=56&__elgg_ts=1731083830&__elgg_token=-TLgvgywckY6XBpLAcdx4w&__elgg_ts=1731083830&__elgg_token=-TLgvgywckY6XBpLAcdx4w`
+
 <!-- Podem ver se vcs tambem tem 2 vezes o token e o ts -->
 #### JS script 
 
@@ -85,8 +86,8 @@ Final version would be:
 <script type="text/javascript">
     window.onload = function () {
         var Ajax=null;
-        var ts = "&__elgg_ts=" + elgg.security.token.__elgg_ts; 
-        var token = "&__elgg_token=" + elgg.security.token.__elgg_token; 
+        var ts = "&__elgg_ts=" + elgg.security.token.__elgg_ts;  /* (1) */
+        var token = "&__elgg_token=" + elgg.security.token.__elgg_token; /* (2) */
         
         //Construct the HTTP request to add Samy as a friend.
         var sendurl = "http://www.seed-server.com/action/friends/add?friend=59" + ts + token + ts + token;
@@ -109,10 +110,26 @@ Finally, we placed this code in Samy's `About me` section (using `Edit HTML` to 
 
 As a result, simply by visiting Samy's page, he was added to Boby's friends.
 
-#### Asnwers
+#### Question 1
 
-* Q1: Both lines include security tokens in our request, and they are expected by server, so without these lines, our XSS attack would be unable to perform authenticated actions (like adding friends) because the application would detect the request as unauthorized. 
-    * First line: adds timestamp security token.
-    * Second line: adds CSRF token.
-* Q2: TODO
+> Explain the purpose of Lines 1 and 2, why are they are needed?
 
+After analyzing the request that is sent upon clicking the `Add Friend` button, we can see that a timestamp and a token are passed, in order for the request to be considered valid. Therefore, the purpose of both lines (1) and (2) is to obtain these values so that we can send them in our request, as they are expected by server. 
+Without these lines, our XSS attack would be unable to perform authenticated actions (like adding friends).  
+More specifically, the purpose of the lines is:
+  * First line: adds timestamp security token.
+  * Second line: adds CSRF token.
+
+#### Question 2
+
+> If the Elgg application only provide the Editor mode for the "About Me" field, i.e., you cannot switch to the Text mode, can you still launch a successful attack?
+
+To be able to launch the attack, we needed to add the `<script>` tag to the `About Me` section, so that when the website renders the tag, it executes the code contained withing the script.  
+This exploit can only happen in the Text mode because any text that is written in Editor mode is escaped, leading to safer text that is rendered exactly as plaintext when shown again in the `About Me` section.  
+This can be seen if we write `<script>alert('XSS');</script>` in visual editor, save and then analyze it has HTML, which would show the following: `<p>&lt;script&gt;alert('XSS');&lt;/script&gt;</p>`.
+In conclusion, if the Elgg application only provided the Editor mode for the "About me" section, we could not launch this attack.
+
+# Question 2
+
+This XSS attack can be classified as **Stored XSS**.  
+In this attack, we start by saving the malicious payload (the JavaScript script) in the database ("About Me" section of the user profile) of a legitimate source (the Elgg website). After this, any user that accesses this website and visits the user profile will execute this malicious script and trigger its effects (add the user as a friend). This XSS pattern fits the **Stored XSS** category and is very similar to the Samy Worm studied in class.
