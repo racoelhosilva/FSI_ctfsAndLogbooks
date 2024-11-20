@@ -5,13 +5,13 @@
 In this CTF, we have been given an URL link (http://10.227.243.188:5007/) to a webpage, which hosts a Web file sharing service. This page also exhibits the contents of the README.md in the first page, showing that the service is based on [copyparty](https://github.com/9001/copyparty).
 
 <p align="center" justify="center">
-    <img src="./assets/"> <!-- Image from the website -->
+    <img src="./assets/CTF7/copyparty.png"> <!-- Image from the website -->
 </p>
 
 In this web page, we can see that there is a file named `flag.txt`, which must obviously contain the flag. However, if we try to open it, we only receive the message "Nice try, I am only accessible via JavaScript shenanigans."
 
 <p align="center" justify="center">
-    <img src="./assets/"> <!-- Message from JavaScript -->
+    <img src="./assets/CTF7/flag-message.png"> <!-- Message from JavaScript -->
 </p>
 
 Although there are more things on this page that can be explored, not much is relevant for exploiting it.
@@ -31,7 +31,7 @@ https://localhost:3923/?k304=y%0D%0A%0D%0A%3Cimg+src%3Dcopyparty+onerror%3Dalert
 This url contains inside `k304` an HTML element `<img src=... onerror=...>`, properly URL encoded, where `src` is an invalid link and `onerror` has the malicious JavaScript code to be executed. In the PoC, since the `src`' URL is invalid, it will execute the `onerror` code `alert(1)`, which creates a prompt with the text "1". By modifying the host and accessing the resulting URL, `https://10.227.243.188:5007/?k304=y%0D%0A%0D%0A%3Cimg+src%3Dcopyparty+onerror%3Dalert(1)%3E`, we confirmed that the prompt indeed appears, indicating that the site is vulnerable to XSS attacks using this method.
 
 <p align="center" justify="center">
-    <img src="./assets/"> <!-- Example proof of concept -->
+    <img src="./assets/CTF7/poc.png"> <!-- Example proof of concept -->
 </p>
 
 ## Finding an Exploit
@@ -55,7 +55,7 @@ https://10.227.243.188:5007/?k304=y%0D%0A%0D%0A%3Cimg%20src%3Dcopypasta%20onerro
 Accessing this URL effectively opens the website and launches an alert with the flag!
 
 <p align="center" justify="center">
-    <img src="./assets/"> <!-- Flag image blurred -->
+    <img src="./assets/CTF7/flag.png"> <!-- Flag image blurred -->
 </p>
 
 ## XSS Characterization
