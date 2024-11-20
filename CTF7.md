@@ -60,5 +60,5 @@ Accessing this URL effectively opens the website and launches an alert with the 
 
 ## XSS Characterization
 
-In this CTF, we managed to obtain the flag using a Reflected XSS exploit.  
+In this CTF, as previously mentioned in the vulnerability description, we managed to obtain the flag using a Reflected XSS exploit.  
 This type of attack happens when the attacker uses requests (in this case, the URL with the extra parameter) to attack a legitimate website. This malicious payload is then "reflected" to execute on the client (in this case, showing the hidden flag through the HTML element).
