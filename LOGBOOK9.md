@@ -164,8 +164,8 @@ Mauris sed posuere est, ut vulputate elit. Duis luctus hendrerit ornare. Suspend
 We started by encrypting the file using the `aes-128-ecb` algorithm. To do this, we used the following flags:
 * `-aes-128-ecb`: Specifies the algorithm;
 * `-e`: Indicates encryption;
-* `-in`: Input file;
-* `-out`: Output file;
+* `-in`: Specifies the input file;
+* `-out`: Specifies the output file;
 * `-K`: Specifies the key;
 
 > **Note**: ECB mode does not require an Initialization Vector (IV), so the `-iv` flag is not needed.
@@ -185,7 +185,6 @@ We can run `diff plaintext.txt decipher_ecb.txt` to verify that the files are id
 **Characteristics**: 
 - ECB encrypts each block independently.
 - If the data contains repeating information, the ciphertext would too, because same block of plaintext will result to same ciphertext block, so it not suitable for images.
-<!-- Dizer aqui sobre padding no ultimo blocko? Tipo nao parece info muito relevante, mas se dizermos, tambem adicionamos que no cbc ele sempre mete um padding. -->
 
 ## aes-128-cbc
 
@@ -205,6 +204,8 @@ openssl enc -aes-128-cbc -d -in cipher_cbc.bin -out decipher_cbc.txt -K 00112233
 - CBC uses the Initialization Vector, and each block is XOR with the previous one ciphertext block (first block XOR with IV). 
 - This dependency ensures that repeating plaintext blocks do not result in identical ciphertext blocks, solving the issue seen in ECB.
 
+> **Note**: In both modes, if we try to decrypt the text with the wrong key, `openssl` will be able to tell that a bad decryption occurred
+
 ## aes-128-ctr
 
 Finally, we used the `aes-128-ctr` algorithm. 
@@ -221,8 +222,55 @@ openssl enc -aes-128-ctr -d -in cipher_ctr.bin -out decipher_ctr.txt -K 00112233
 **Characteristics**:
 - CTR generates a keystream by encrypting counter value derived from the IV and the key. This keystream is XOR with the plaintext to produce ciphertext, so blocks are processed independently and any data can be accessed eficiently, means that CTR mode can be parallelized, making it faster and more efficient.
 
-
+> **Note**: Unlike the previous modes, `openssl` is not able to detect the bad encryption if the wrong key is given.
 
 # Task 5
 
+In this task, we analyzed the how much original information is lost when the encrypted message is corrupted, for each one of the three types of encryption.
 
+## aes-128-ebc
+
+For each encrytion mode, the process to verify the amount of information loss is very similar:
+
+1. Encrypt the message.
+2. Set the 50th byte to `0x00`, using `bless`.
+3. Decrypt the corrupted encrypted message.
+4. Determine the bytes that differ between the original and the obtained message, using the `cmp` command.
+
+For example, these are the commands we used for the EBC mode:
+
+```bash
+openssl enc -aes-128-ecb -e -in plaintext.txt -out cipher_ecb.bin -K 00112233445566778889aabbccddeeff
+bless cipher_ecb.bin  # Modify the 50th byte
+openssl enc -aes-128-ecb -d -in cipher_ecb.bin -out decipher_ecb.txt -K 00112233445566778889aabbccddeeff
+cmp -lb plaintext.txt decipher_ecb.txt
+```
+
+In the aes-128-ecb encrytion, each block of 16 bytes (128 bits) is encryted independently, and so are they decrypted. Therefore, by modifying one byte of the encrypted message, we will be modifying effectively the information of all the bytes in the same block, so a loss of 16 bytes will occur. Effectively, this is what we verify after following the steps above:
+
+<p align="center" justify="center">
+    <img src="./assets/LOGBOOK9/cmp-ecb.png">
+</p>
+
+## aes-128-cbc
+
+In this mode, we encrypt each block by feeding to the block cipher algorithm the XOR between the plaintext block and the previous encrypted block. Therefore, there is a dependency between the encryption of each block and, to decrypt a block, we need to decrypt the corresponding ciphered block and XOR' it with the previous encrypted block.
+
+This means that, by modifying one byte on the encrypted message, we will lose:
+
+- the bytes in the same block, since the block is corrupted
+- the byte of the next block in the same block position, since we need to XOR the next block with the current block, which will differ only on the byte in that position.
+
+In total, we will lose 17 bytes, which we can confirm by performing the operations for our case:
+
+<p align="center" justify="center">
+    <img src="./assets/LOGBOOK9/cmp-cbc.png">
+</p>
+
+## aes-128-ctr
+
+In this mode, each block of the plaintext is XOR'ed to the result of encryting the concatenation of the nonce with the counter. So, to decrypt the message, we encrypt the nonce+counter and XOR' it with the ciphered block. Since only one byte of the encrypted message is modified, only one byte will be different after the XOR and, therefore, in the decrypted message, losing only the byte in the modified position. This is what we verify when performing the steps above:
+
+<p align="center" justify="center">
+    <img src="./assets/LOGBOOK9/cmp-ctr.png">
+</p>
