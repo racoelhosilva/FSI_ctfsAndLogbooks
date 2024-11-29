@@ -147,6 +147,80 @@ EARNING BEST DIRECTOR NOMINATIONS ARE FEW AND FAR BETWEEN
 
 # Task 2
 
+In this task, we applied the `aes-128-ecb`, `aes-128-cbc`, and `aes-128-ctr` algorithms to encode and decode plaintext using the `openssl enc` command.
+
+First, we generated the `plaintext.txt` file. For this, we used a Lorem Ipsum text with 1005 bytes:
+
+```
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed in egestas tellus. Fusce vel elit erat. In tellus tellus, iaculis bibendum blandit et, volutpat quis mi. Integer condimentum interdum quam. Ut vitae tellus eu neque pulvinar pellentesque. Curabitur et auctor mauris, gravida lacinia ante. Aliquam aliquet augue ac odio suscipit varius. Aliquam finibus nisi eu mi fermentum tempor nec sit amet ex. Quisque bibendum ut tortor eget volutpat.
+
+Aenean fermentum mattis fermentum. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; In faucibus non nibh non convallis. Etiam efficitur varius nisl, vitae elementum nisi rutrum aliquet. Aliquam pellentesque lobortis nulla nec commodo. Suspendisse potenti. Sed varius vitae leo ornare ornare. Etiam ac eleifend arcu, eget dignissim augue.
+
+Mauris sed posuere est, ut vulputate elit. Duis luctus hendrerit ornare. Suspendisse tincidunt, libero id ultrices interdum, arcu urna iaculis eros, porttitor semper augue est. 
+```
+
+## aes-128-ecb
+
+We started by encrypting the file using the `aes-128-ecb` algorithm. To do this, we used the following flags:
+* `-aes-128-ecb`: Specifies the algorithm;
+* `-e`: Indicates encryption;
+* `-in`: Input file;
+* `-out`: Output file;
+* `-K`: Specifies the key;
+
+> **Note**: ECB mode does not require an Initialization Vector (IV), so the `-iv` flag is not needed.
+
+The encryption command is as follows:
+```bash
+openssl enc -aes-128-ecb -e -in plaintext.txt -out cipher_ecb.bin -K 00112233445566778889aabbccddeeff
+```
+
+To decrypt the file, we change `-e` to `-d` and adjust the input/output files:
+```bash
+openssl enc -aes-128-ecb -d -in cipher_ecb.bin -out decipher_ecb.txt -K 00112233445566778889aabbccddeeff
+```
+
+We can run `diff plaintext.txt decipher_ecb.txt` to verify that the files are identical.
+
+**Characteristics**: 
+- ECB encrypts each block independently.
+- If the data contains repeating information, the ciphertext would too, because same block of plaintext will result to same ciphertext block, so it not suitable for images.
+<!-- Dizer aqui sobre padding no ultimo blocko? Tipo nao parece info muito relevante, mas se dizermos, tambem adicionamos que no cbc ele sempre mete um padding. -->
+
+## aes-128-cbc
+
+Next, we used the `aes-128-cbc` algorithm. The command and flags are similar to those used for ECB, but in this case, we also need to specify the `-iv` flag with the Initialization Vector.
+
+Encryption command:
+```bash
+openssl enc -aes-128-cbc -e -in plaintext.txt -out cipher_cbc.bin -K 00112233445566778889aabbccddeeff -iv 0102030405060708
+```
+
+Decryption command:
+```bash
+openssl enc -aes-128-cbc -d -in cipher_cbc.bin -out decipher_cbc.txt -K 00112233445566778889aabbccddeeff -iv 0102030405060708
+```
+
+**Characteristics**:
+- CBC uses the Initialization Vector, and each block is XOR with the previous one ciphertext block (first block XOR with IV). 
+- This dependency ensures that repeating plaintext blocks do not result in identical ciphertext blocks, solving the issue seen in ECB.
+
+## aes-128-ctr
+
+Finally, we used the `aes-128-ctr` algorithm. 
+
+Encryption command:
+```bash
+openssl enc -aes-128-ctr -e -in plaintext.txt -out cipher_ctr.bin -K 00112233445566778889aabbccddeeff -iv 0102030405060708
+```
+Decryption command:
+```bash
+openssl enc -aes-128-ctr -d -in cipher_ctr.bin -out decipher_ctr.txt -K 00112233445566778889aabbccddeeff -iv 0102030405060708
+```
+
+**Characteristics**:
+- CTR generates a keystream by encrypting counter value derived from the IV and the key. This keystream is XOR with the plaintext to produce ciphertext, so blocks are processed independently and any data can be accessed eficiently, means that CTR mode can be parallelized, making it faster and more efficient.
+
 
 
 # Task 5
