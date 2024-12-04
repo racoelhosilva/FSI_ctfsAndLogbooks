@@ -90,6 +90,7 @@ Once agian, By analyzing the contents of the `ca.crt` file, we can see that this
 | q                    | `prime2`          |                      |
 
 Screenshots of these values from the file output are also shown below:
+<!--
 <p align="center" justify="center">
     <img src="./assets/LOGBOOK11/task1_valcrt.png">
     Values shown in the `ca.crt` file
@@ -101,6 +102,7 @@ Screenshots of these values from the file output are also shown below:
     <img src="./assets/LOGBOOK11/task1_valprm.png">
     Values shown in the `ca.key` file
 </p>
+-->
 
 ## Task 2: Generating a Certificate Request for Your Web Server
 
@@ -202,12 +204,62 @@ Now, when we access the `https://www.randomwebsite.com`, we will be greeted with
     <img src="./assets/LOGBOOK11/task4_https.png">
 </p>
 
-
 ## Task 5: Launching a Man-In-The-Middle Attack
+
+Now that we have set up a CA and a web server using a certificate from that CA, we will explore Man-in-the-Middle (MITM) attacks and how Public Key Infrastructures defend against them.
+
+To simulate our attack, we will start by setting up an Apache server (similar to the one in task 4) for a fake website (simulating a malicious website). For this one, we decided to use `www.moodle.pt` and the configuration file `moodle.conf` is as follows:
+<p align="center" justify="center">
+    <img src="./assets/LOGBOOK11/task5_apache.png">
+</p>
+
+After this, we should also run the following commands to start the web server in the container:
+Finally, we can launch our web server with:
+```sh
+a2enmod ssl              # Enable the SSL module
+a2ensite moodle          # Enable the site described in the file
+service apache2 restart  # Restart the server
+```
+
+After starting the web server, we should also add another line into our `/etc/hosts` file, for the new website:
+<p align="center" justify="center">
+    <img src="./assets/LOGBOOK11/task5_hosts.png">
+</p>
+
+Now that the new web server is ready, we can try to access it through `https://www.moodle.pt`. This time, the browser will also issue the `Warning: Potential Security Risk Ahead` since the CA has not signed the Certificate Signing Request for the fake website.
+<p align="center" justify="center">
+    <img src="./assets/LOGBOOK11/task5_risk.png">
+</p>
 
 ## Task 6: Launching a Man-In-The-Middle Attack with a Compromised CA
 
-# Part 2: Compromised Certifica Authorities
+For this final task, the goal is to show how a compromised Certificate Authority can be exploited by an attacker to perform a Man-in-the-Middle attack.  
+For this, we will continue with the `www.moodle.pt` example and assume that the private key of our Certificate Authority has been compromised.
+
+If the private key has been compromised, an attacker can generate new Certificate Signing Requests and Certificates for different web servers. Therefore, the first part of the task is to replicate Tasks 2 and 3 with the fake website:
+<p align="center" justify="center">
+    <img src="./assets/LOGBOOK11/task6_csr.png">
+    <img src="./assets/LOGBOOK11/task6_cert.png">
+</p>
+
+After creating the certificate and the key, we can send them to the container using commands similar to the previous ones:
+```sh
+docker cp server.key <CONTAINER-ID>:/certs/moodle.key
+docker cp server.crt <CONTAINER-ID>:/certs/moodle.crt
+```
+And then we just need to update the configuration of the Apache server to use the newly created files:
+<p align="center" justify="center">
+    <img src="./assets/LOGBOOK11/task6_conf.png">
+</p>
+
+By restarting the Apache server, our new web server configuration for the fake website `www.moodle.pt` is now ready. Since we already have the Certificate Authority in our browser, we can now access the website using `https://www.moodle.pt`.
+<p align="center" justify="center">
+    <img src="./assets/LOGBOOK11/task6_https.png">
+</p>
+
+This is an example of how a compromised Certificate Authority can lead to Man-in-the-Middle attacks.
+
+# Part 2: Compromised Certificate Authorities
 
 <!-- 
 TODO: 
