@@ -57,5 +57,26 @@ This request will be correctly authenticated and we will see the server will res
 
 # Task 2: Create Padding
 
+In this second task, we need to calculate the padding for the message request that lists the contents of the server.
+
+According to the RFC6234, the padding of a SHA256 of a message of length L is:
+  - one `\x80` byte
+  - many `\x00` bytes to pad the contents until the next multiple of 64
+  - the last 4 bytes correspond to the **length field** (number of bits in the message M = L * 8)
+
+To help us in this task, we can use the Python interpreter for some quick calculations:
+1. The first step is to obtain the length of the message we will be using (`<key>:myname=<name>&uid=<need-to-fill>&lstcmd=1`) which is <!-- insert value-->
+2. The total length of the padding should then be 64 - xx = yy bytes
+3. We can fill the entire length of the message with `\x00`, and then change the first byte to `\x80`
+4. Since the message has a length L, it needs L * 8 = zz bits. This value corresponds to ww in hexadecimal, so the last values of the padding should be `\x00\x00\xww\xww`
+
+Putting it all together, we end up with the follwing padding:
+```
+\x80\x00\x00...\xww\xww
+```
+Since we will need to add it to the server request, we can already write using `%` instead of `\x` as follows:
+```
+%80%00%00...%ww%ww
+```
 
 # Task 3: Length Extension Attack
