@@ -49,7 +49,7 @@ echo "1000" > serial
 
 We also need to uncomment the `unique_subject` line shown previously, to allow creation of certifications with the same subject.
 
-After this OpenSSL setup, we are ready to become a CA. We can cd back into the `openssl.conf` directory and all we need to do is run the following command:
+After this OpenSSL setup, we are ready to become a CA. We can cd back into the `openssl.cnf` directory and all we need to do is run the following command:
 ```sh
 openssl req -x509 -newkey rsa:4096 -sha256 -days 3650 \
 -keyout ca.key -out ca.crt \
@@ -90,7 +90,6 @@ Once agian, By analyzing the contents of the `ca.crt` file, we can see that this
 | q                    | `prime2`          |                      |
 
 Screenshots of these values from the file output are also shown below:
-
 <p align="center" justify="center">
     <img src="./assets/LOGBOOK11/task1_valcrt.png">
     Values shown in the `ca.crt` file
@@ -105,9 +104,104 @@ Screenshots of these values from the file output are also shown below:
 
 ## Task 2: Generating a Certificate Request for Your Web Server
 
+After becoming a Certificate Authority (CA), we will use this to create a public key certificate for our own webserver (www.randomwebsite.com). 
+
+The first step is to generate the Certificate Signing Request (CSR), which can be done with the following command:
+```bash
+openssl req -newkey rsa:2048 -sha256 \
+    -keyout server.key -out server.csr \
+    -subj "/CN=www.randomwebsite.com/O=randomwebsite Inc./C=US" \
+    -passout pass:dees
+```
+This command should create two files:
+- `server.key` file (with a similar structure and purpose as the `ca.key`). This file can be analyzed with `openssl rsa -in server.key -text -noout`.
+- `server.csr` (the certificate signing request with the public key). This file can be analyzed with `openssl req -in server.csr -text -noout`.
+  
+As solicited by the guide, we should also add two alternative names to the CSR, for this, we can run a command similar to the previous one:
+```bash
+openssl req -newkey rsa:2048 -sha256 \
+    -keyout server.key -out server.csr \
+    -subj "/CN=www.randomwebsite.com/O=randomwebsite Inc./C=US" \
+    -passout pass:dees
+    -addext "subjectAltName = DNS:www.randomwebsite.com, \
+                              DNS:www.randomwebsite1.com, \
+                              DNS:www.randomwebsite2.com"
+```
+<p align="center" justify="center">
+    <img src="./assets/LOGBOOK11/task2_altnames.png">
+</p>
+
 ## Task 3: Generating a Certificate for your server
 
+After generating a Certificate Signing Request, the Certificate Authority needs to sign it to form the Certificate that can be used by the other entity. In this lab, we will do this process ourselves and generate `server.crt` using `server.csr`, `ca.key` and `ca.crt`.
+
+But first, we need to uncomment the `copy_extensions` line in the `openssl.cnf`:
+```
+# Extension copying option: use with caution.
+copy_extensions = copy
+```
+
+Finally, we can generate the certificate for `www.randomwebsite.com` with the following command:
+```bash
+openssl ca -config myCA_openssl.cnf -policy policy_anything \
+    -md sha256 -days 3650 \
+    -in server.csr -out server.crt -batch \
+    -cert ca.crt -keyfile ca.key
+```
+<p align="center" justify="center">
+    <img src="./assets/LOGBOOK11/task3_cert.png">
+</p>
+
 ## Task 4: Deploying Certificate in an Apache-Based HTTPS Website
+
+Now that we have create a Certificate from our Certificate Authority for our web server (`www.randomwebsite.com`), we can deploy our HTTPS website with it, using Apache. The guide for this lab already create an instante for the `bank32` example, but it also explains how the process to replicate the same using a different website.
+
+The first step is to obtain shell access to the container, which can be done using the `docksh` alias.  
+After that, we can go to the `/etc/apache2/sites-available` and create a configuration for our website, similar to the one in the `bank32_apache_ssl.conf`.
+The final configuration for our website is shown below:
+<p align="center" justify="center">
+    <img src="./assets/LOGBOOK11/task4_apache.png">
+</p>
+
+We named this configuration `random_website.conf`. Please note the changes to `ServerName`, `SSLCertificateFile` and `SSLCertificateKeyFile`. We kept the `DocumentRoot` the same as the example (screenshots shown below).
+
+After creating the Apache configuration, we need to add the adequate certificate and key to the `certs` directory, which can be done using the following commands (from outside the container):
+```sh
+docker cp server.key <CONTAINER-ID>:/certs/randomwebsite.key
+docker cp server.crt <CONTAINER-ID>:/certs/randomwebsite.crt
+```
+
+Finally, we can launch our web server with:
+```sh
+a2enmod ssl            # Enable the SSL module
+a2ensite randomwebsite # Enable the site described in the file
+service apache2 start  # Start the server
+```
+
+When acessing `http://www.randomwebsite.com` we will get the following screen which shows that the web server is now running as intended.
+<p align="center" justify="center">
+    <img src="./assets/LOGBOOK11/task4_http.png">
+</p>
+
+However, the setup we made should allow us to access the webserver through `https://www.randomwebsite.com`.
+<p align="center" justify="center">
+    <img src="./assets/LOGBOOK11/task4_risk.png">
+</p>
+
+However, when we access the server, we see a `potential security risk ahead` message. This is because, although the web server has certificate, the Certificate Authority is not recognized by the browser. 
+
+To fix this, we just need to go to `about:preferences#privacy` > `View Certificates` > `Import` and select our `ca.crt` file. We should then see a new entry on the Certificate Manager for ModelCA.
+<p align="center" justify="center">
+    <img src="./assets/LOGBOOK11/task4_cert.png">
+    <img src="./assets/LOGBOOK11/task4_cert2.png">
+</p>
+
+Now, when we access the `https://www.randomwebsite.com`, we will be greeted with the green `Hello World` message.
+
+<p align="center" justify="center">
+    <img src="./assets/LOGBOOK11/task4_https.png">
+</p>
+
 
 ## Task 5: Launching a Man-In-The-Middle Attack
 
