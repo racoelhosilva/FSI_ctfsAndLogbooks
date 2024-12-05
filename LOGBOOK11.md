@@ -90,7 +90,6 @@ Once agian, By analyzing the contents of the `ca.crt` file, we can see that this
 | q                    | `prime2`          |                      |
 
 Screenshots of these values from the file output are also shown below:
-<!--
 <p align="center" justify="center">
     <img src="./assets/LOGBOOK11/task1_valcrt.png">
     Values shown in the `ca.crt` file
@@ -102,7 +101,6 @@ Screenshots of these values from the file output are also shown below:
     <img src="./assets/LOGBOOK11/task1_valprm.png">
     Values shown in the `ca.key` file
 </p>
--->
 
 ## Task 2: Generating a Certificate Request for Your Web Server
 
