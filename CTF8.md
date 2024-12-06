@@ -21,7 +21,7 @@ The visitor can also leave a reply but, besides that, nothing major is found.
 
 We started by gathering information about the website, specifically the installed software. To gather additional information, we used the `wpscan` tool with the command: `wpscan --url http://44.242.216.18:5008/`.
 
-The output (Irrelevant parts of the output have been omitted for clarity):
+The output, with irrelevant parts omitted for clarity, is shown below:
 
 ```
 [+] URL: http://44.242.216.18:5008/ [44.242.216.18]
@@ -69,7 +69,7 @@ This vulnerability can be used to obtain any information from the website databa
 
 To exploit the vulnerability, we used the script found in this [GitHub repository](https://github.com/shanglyu/CVE-2024-1698).
 
-Some explanation:
+#### Explanation
 
 The exploit works by using blind SQL injection with a timing-based side-channel to infer information about the database. The vulnerability lies in the `type` parameter, which is passed into an SQL query without proper sanitization.
 
@@ -79,7 +79,8 @@ IF(ASCII(SUBSTRING((SELECT user_pass FROM wp_users WHERE id=1), <letter_position
 ```
 It checks if `<letter_position>` character of the admin's password hash has an ASCII value `<letter>`, and, if it is true, it will perform a 10 second delay. Therefore, by going through each ASCII character in in creasing order, and assuming that the delay time is not reached with the previous requests, we character that matches the one in the database text will be the one being processed when the end of the delay is reached. The code from the repository automates this process.
 
-This is the code for the attack: We changed the delay from `0.3` to `10`, since the server was relatively slow to respond, which made the assumption we mentioned previously not hold and the script guess the wrong characters.
+The code for the attack is shown below: 
+> Note: We changed the delay from `0.3` to `10`, since the server was relatively slow to respond, which made the assumption we mentioned previously not hold and the script guess the wrong characters.
 
 ```py
 import requests
