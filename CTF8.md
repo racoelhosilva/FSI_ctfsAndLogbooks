@@ -109,12 +109,16 @@ The output:
 
 The hashed admin's password: `$P$BuRuB0Mi3926H8h.hcA3pSrUPyq0o10`.
 
-## Findong the Password
+## Finding the Password
 
 The admin's password was stored as a hash using the default PHPass mechanism.
 
-To crack the retrieved hash, we used the tool Hashcat, command used: `hashcat -O -m 400 -a 0 -o cracked.txt hash.txt rockyou.txt`.
+To crack the retrieved hash, we used Hashcat with the following command: 
+
+```bash
+hashcat -O -m 400 -a 0 -o cracked.txt hash.txt rockyou.txt
+```
 
 The rockyou.txt we got from this [link](https://github.com/brannondorsey/naive-hashcat/releases/download/data/rockyou.txt).
 
-The flag is stored in `cracked.txt`.
+The cracked password (flag) is saved in the `cracked.txt`.
