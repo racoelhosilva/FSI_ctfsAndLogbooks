@@ -163,7 +163,7 @@ The patterns found that lead to a successful decrytion, found after some trial a
 |       `:` -> `h`       |             `...duranteoito:oras...`             |            `...duranteoitohoras...`             |
 |       `.` -> `x`       |               `...e.propriados...`               |              `...expropriados...`               |
 
-\*frequent expression
+\*the expression appears multiple times throughout the text (probably related to the news article itself)
 
 With these substitutions, we end up with what looks like an excerpt from a news article about the elections in the Guinea-Bissau, and some final text about expropriated farmers and land owners.
 
