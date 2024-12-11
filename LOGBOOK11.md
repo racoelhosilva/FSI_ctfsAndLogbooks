@@ -259,9 +259,9 @@ This is an example of how a compromised Certificate Authority can lead to Man-in
 
 # Part 2: Compromised Certificate Authorities
 
-<!-- 
-TODO: 
-    confirmar o tema na aula teórica:
-- supostamente é Certificate Revocation List
-- atacante pode tentar evitar o uso de CRLs
--->
+There are a few mechanisms that can be used when a Certificate Authority (CA) is compromised. One of the main ones which we discussed in the theoretical classes is the **Certificate Revocation List** (CRL).  
+The CRL is a list periodically published by a CA that has certificates that have been compromised and therefore can no longer be trusted, so they should be avoided by browsers. When a CA is compromised, all of their issued certificates can be added to the CRL.  
+In practice this solution can be challenging and the attacker can try some workarounds such as:
+ - Intercept or block network traffic associated with the CRL, preventing clients from downloading the updated CRL and verifying if the CA has been compromised or not
+ - Use outdated CRLs that don't have information about recently compromised CAs, therefore letting the browser trust certificates that have already been revoked
+ - Exploit certificates with short validity durations, which makes it impractical to revoke them in CRLs before they expire naturally
