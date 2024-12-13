@@ -1,22 +1,22 @@
 # Seedlab Week #11 (Public Key Infrastructure - PKI)
 
-# Part 1: SeedLab Tasks
+# Part 1: Seedlab Tasks
 
 ### Initial Setup
 
-Before starting this SeedLab, there is a simple initial setup consisting of the following steps:
+Before starting this seedlab, there is a simple initial setup consisting of the following steps:
 - Launch the docker container for this seedlabs (which can be done with the `dcbuild` and `dcup` commands)
-- Add the necessary entries in the /etc/hosts file, mapping the container's IP address
+- Add the necessary entries in the `/etc/hosts` file, mapping the container's IP address
 
 <p align="center" justify="center">
     <img src="./assets/LOGBOOK11/init_hosts.png">
 </p>
 
-In this case, we added these two entries. The first one is necessary in order to follow the example of the SeedLab. The second one corresponds to the custom name we will use throughout the rest of the tasks.
+In this case, we added these two entries. The first one is necessary in order to follow the example of the seedlab. The second one corresponds to the custom name we will use throughout the rest of the tasks.
 
 ## Task 1: Becoming a Certificate Authority (CA)
 
-For this task, we will create a root Certificate Authority (self-signed) and use it to issue certificates for others (in this case, our "randomwebsite").
+For this task, we will create a root Certificate Authority (self-signed) and use it to issue certificates for others (in this case, `www.silva2024.com`).
 
 To become a root Certificate Authority, we will use OpenSSL with a different configurations. The default configuration file is located in `/usr/lib/ssl/openssl.cnf`. The first thing to do is to copy this configuration to a new directory (this way we can change it without consequences, and use it for the rest of the commands):
 ```sh
@@ -44,7 +44,7 @@ mkdir certs
 mkdir crl
 mkdir newcerts
 touch index.txt
-echo "1000" > serial
+echo "42" > serial
 ```
 
 We also need to uncomment the `unique_subject` line shown previously, to allow creation of certifications with the same subject.
@@ -104,13 +104,13 @@ Screenshots of these values from the file output are also shown below:
 
 ## Task 2: Generating a Certificate Request for Your Web Server
 
-After becoming a Certificate Authority (CA), we will use this to create a public key certificate for our own webserver (www.randomwebsite.com). 
+After becoming a Certificate Authority (CA), we will use this to create a public key certificate for our own webserver (www.silva2024.com). 
 
 The first step is to generate the Certificate Signing Request (CSR), which can be done with the following command:
 ```bash
 openssl req -newkey rsa:2048 -sha256 \
     -keyout server.key -out server.csr \
-    -subj "/CN=www.randomwebsite.com/O=randomwebsite Inc./C=US" \
+    -subj "/CN=www.silva2024.com/O=Silva 2024 Inc./C=US" \
     -passout pass:dees
 ```
 This command should create two files:
@@ -121,11 +121,11 @@ As solicited by the guide, we should also add two alternative names to the CSR, 
 ```bash
 openssl req -newkey rsa:2048 -sha256 \
     -keyout server.key -out server.csr \
-    -subj "/CN=www.randomwebsite.com/O=randomwebsite Inc./C=US" \
+    -subj "/CN=www.silva2024.com/O=silva2024 Inc./C=US" \
     -passout pass:dees
-    -addext "subjectAltName = DNS:www.randomwebsite.com, \
-                              DNS:www.randomwebsite1.com, \
-                              DNS:www.randomwebsite2.com"
+    -addext "subjectAltName = DNS:www.silva2024.com, \
+                              DNS:www.silva20241.com, \
+                              DNS:www.silva20242.com"
 ```
 <p align="center" justify="center">
     <img src="./assets/LOGBOOK11/task2_altnames.png">
@@ -141,7 +141,7 @@ But first, we need to uncomment the `copy_extensions` line in the `openssl.cnf`:
 copy_extensions = copy
 ```
 
-Finally, we can generate the certificate for `www.randomwebsite.com` with the following command:
+Finally, we can generate the certificate for `www.silva2024.com` with the following command:
 ```bash
 openssl ca -config myCA_openssl.cnf -policy policy_anything \
     -md sha256 -days 3650 \
@@ -154,7 +154,7 @@ openssl ca -config myCA_openssl.cnf -policy policy_anything \
 
 ## Task 4: Deploying Certificate in an Apache-Based HTTPS Website
 
-Now that we have create a Certificate from our Certificate Authority for our web server (`www.randomwebsite.com`), we can deploy our HTTPS website with it, using Apache. The guide for this lab already create an instante for the `bank32` example, but it also explains how the process to replicate the same using a different website.
+Now that we have create a Certificate from our Certificate Authority for our web server (`www.silva2024.com`), we can deploy our HTTPS website with it, using Apache. The guide for this lab already create an instance for the `bank32` example, but it also explains how the process to replicate the same using a different website.
 
 The first step is to obtain shell access to the container, which can be done using the `docksh` alias.  
 After that, we can go to the `/etc/apache2/sites-available` and create a configuration for our website, similar to the one in the `bank32_apache_ssl.conf`.
@@ -163,27 +163,27 @@ The final configuration for our website is shown below:
     <img src="./assets/LOGBOOK11/task4_apache.png">
 </p>
 
-We named this configuration `random_website.conf`. Please note the changes to `ServerName`, `SSLCertificateFile` and `SSLCertificateKeyFile`. We kept the `DocumentRoot` the same as the example (screenshots shown below).
+We named this configuration `silva2024.conf`. Please note the changes to `ServerName`, `SSLCertificateFile` and `SSLCertificateKeyFile`. We kept the `DocumentRoot` the same as the example (screenshots shown below).
 
 After creating the Apache configuration, we need to add the adequate certificate and key to the `certs` directory, which can be done using the following commands (from outside the container):
 ```sh
-docker cp server.key <CONTAINER-ID>:/certs/randomwebsite.key
-docker cp server.crt <CONTAINER-ID>:/certs/randomwebsite.crt
+docker cp server.key <CONTAINER-ID>:/certs/silva2024.key
+docker cp server.crt <CONTAINER-ID>:/certs/silva2024.crt
 ```
 
 Finally, we can launch our web server with:
 ```sh
 a2enmod ssl            # Enable the SSL module
-a2ensite randomwebsite # Enable the site described in the file
+a2ensite silva2024     # Enable the site described in the file
 service apache2 start  # Start the server
 ```
 
-When acessing `http://www.randomwebsite.com` we will get the following screen which shows that the web server is now running as intended.
+When acessing `http://www.silva2024.com` we will get the following screen which shows that the web server is now running as intended.
 <p align="center" justify="center">
     <img src="./assets/LOGBOOK11/task4_http.png">
 </p>
 
-However, the setup we made should allow us to access the webserver through `https://www.randomwebsite.com`.
+However, the setup we made should allow us to access the webserver through `https://www.silva2024.com`.
 <p align="center" justify="center">
     <img src="./assets/LOGBOOK11/task4_risk.png">
 </p>
@@ -196,7 +196,7 @@ To fix this, we just need to go to `about:preferences#privacy` > `View Certifica
     <img src="./assets/LOGBOOK11/task4_cert2.png">
 </p>
 
-Now, when we access the `https://www.randomwebsite.com`, we will be greeted with the green `Hello World` message.
+Now, when we access the `https://www.silva2024.com`, we will be greeted with the green `Hello World` message.
 
 <p align="center" justify="center">
     <img src="./assets/LOGBOOK11/task4_https.png">
@@ -251,6 +251,7 @@ And then we just need to update the configuration of the Apache server to use th
 </p>
 
 By restarting the Apache server, our new web server configuration for the fake website `www.moodle.pt` is now ready. Since we already have the Certificate Authority in our browser, we can now access the website using `https://www.moodle.pt`.
+
 <p align="center" justify="center">
     <img src="./assets/LOGBOOK11/task6_https.png">
 </p>
@@ -259,9 +260,9 @@ This is an example of how a compromised Certificate Authority can lead to Man-in
 
 # Part 2: Compromised Certificate Authorities
 
-There are a few mechanisms that can be used when a Certificate Authority (CA) is compromised. One of the main ones which we discussed in the theoretical classes is the **Certificate Revocation List** (CRL).  
-The CRL is a list periodically published by a CA that has certificates that have been compromised and therefore can no longer be trusted, so they should be avoided by browsers. When a CA is compromised, all of their issued certificates can be added to the CRL.  
+There are a few mechanisms that can be used when a Certificate Authority (CA) is compromised. One of the main ones which we discussed in the theoretical classes is the **Certificate Revocation Lists** (CRLs).  
+A CRL is a list periodically published by a CA that has certificates that have been compromised and therefore can no longer be trusted, so they should be avoided by browsers. When a CA is compromised, all of their issued certificates can be added to the CRL.  
 In practice this solution can be challenging and the attacker can try some workarounds such as:
- - Intercept or block network traffic associated with the CRL, preventing clients from downloading the updated CRL and verifying if the CA has been compromised or not
- - Use outdated CRLs that don't have information about recently compromised CAs, therefore letting the browser trust certificates that have already been revoked
- - Exploit certificates with short validity durations, which makes it impractical to revoke them in CRLs before they expire naturally
+ - Intercept or block network traffic associated with the CRL, preventing clients from downloading the updated CRL and verifying if the CA has been compromised or not.
+ - Use outdated CRLs that don't have information about recently compromised CAs, therefore letting the browser trust certificates that have already been revoked.
+ - Exploit certificates with short validity durations, which makes it impractical to revoke them in CRLs before they expire naturally.
