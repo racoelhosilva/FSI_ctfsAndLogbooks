@@ -1,10 +1,17 @@
 # CTF Week #11 (Weak Encryption)
 
-In this CTF, we were given ciphertext that was encrypted using AES in CTR mode. Our goal was to recover the secret key and decrypt the message to obtain the flag.
+In this CTF, we were given a ciphertext that was encrypted using AES in CTR mode. Our goal is to recover the secret key and decrypt the message to obtain the flag.
 
 ## Task 1
 
-We were provided with a `cipherspec.py` that implements AES-CTR encryption and decryption as follows:
+We were provided the ciphered message, which includes the nonce used in the cipher in hexadecimal and the ciphered text, also in hexadecimal:
+
+```
+32a200753d268cfb340c286516834711
+7bf519da99a325f6d78521939a6d08ca6d4d3969128d
+```
+
+We were also provided with a `cipherspec.py` that implements AES-CTR encryption and decryption, used to encrypt the given message:
 
 ```py
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
@@ -35,12 +42,13 @@ def dec(k, c, nonce):
 	return msg
 ```
 
-- `gen()`: The key generation function produces a 16-byte key in which the first 13 bytes are always zero (0x00) and only the last 3 bytes are randomly generated.
-- `enc()` and `dec()`: functions are straightforward AES-CTR implementations. Given a key, nonce, and message, `enc()` produces the ciphertext, and `dec()` recovers the original message from the ciphertext.
+From the script, we can observe the functions:
+- `gen()`: The key generation function, which produces a 16-byte key in which the first 13 bytes are always zero (0x00) and only the last 3 bytes are randomly generated.
+- `enc()` and `dec()`: Straightforward AES-CTR implementations. Given a key, nonce, and message, `enc()` produces the ciphertext, and `dec()` recovers the original message from the ciphertext.
 
 ### Q&A
 
-> **Q1: Como consigo usar esta ciphersuite para cifrar e decifrar dados?**
+> **Q1: How can I use this ciphersuite to cipher and decipher data?**
 
 **Answer:**
 
@@ -54,13 +62,13 @@ cipher = enc(key, flag, nonce)
 decrypted_flag = dec(key, cipher, nonce)
 ```
 
-> **Q2: Como consigo fazer uso da vulnerabilidade que observei para quebrar o código?**
+> **Q2: How can I use the vulnerability that I observed to break the code?**
 
 **Answer:**
 
-Since we know that the first 13 bytes of the key are zero and only the last 3 are random, this reduces the keyspace from 2^(128) to 256^3 = 16,777,216 possible keys, so we can brute force all 256^3 combinations.
+Since we know that the first 13 bytes of the key are zero and only the last 3 are random, this reduces the keyspace from 2^128 to 256^3 = 16,777,216 possible keys, so we can brute force all 256^3 combinations.
 
-> **Q3: Como consigo automatizar este processo, para que o meu ataque saiba que encontrou a flag?**
+> **Q3: How can I automate this process, so that my attack knows that it found the flag?**
 
 **Answer:**
 
@@ -86,23 +94,25 @@ for i in tqdm(range(256**3)):
 		break
 ```
 
+This way, after running the script 
+
 ## Task 2
 
-To determine at which keyspace size the brute-force approach would become infeasible within reasonable time constraints. We measured that our system can test approximately 110,000 keys per second (using `tqdm`).
+To determine at which keyspace size the brute-force approach would become infeasible within reasonable time constraints, we measured that our system can test approximately 110,000 keys per second (using `tqdm`).
 
-| offset | space           | time          |
-| ------ | --------------- | ------------- |
-| 1 byte | 2^8 = 256       | <1 second     |
-| 2 byte | 2^(16) = 65,536 | ~0.58 seconds |
-| 3 byte | 2^(24) ~ 16.7M  | ~2.5 minutes  |
-| 4 byte | 2^(32) ~ 4.3B   | ~10.5 hours   |
-| 5 byte | 2^(40) ~ 1.1T   | ~115 days     |
-| 6 byte | 2^(48) ~ 281T   | ~83 years     |
+| offset | space         | time          |
+| ------ | ------------- | ------------- |
+| 1 byte | 2^8 = 256     | <1 second     |
+| 2 byte | 2^16 = 65,536 | ~0.58 seconds |
+| 3 byte | 2^24 ~ 16.7M  | ~2.5 minutes  |
+| 4 byte | 2^32 ~ 4.3B   | ~10.5 hours   |
+| 5 byte | 2^40 ~ 1.1T   | ~115 days     |
+| 6 byte | 2^48 ~ 281T   | ~83 years     |
 
-With 6 random bytes, brute forcing becomes clearly impractical without significant optimization or more computational resources.
+With 5 bytes or less, it is possible to break the encryption within 10 years. However, with 6 random bytes, brute forcing becomes clearly impractical without significant optimization or more computational resources.
 
 ## Task 3
 
 Making a nonce secret by using only 1 byte and not transmitting it doesn’t meaningfully increase security.
 
-Because guessing 2^8 = 256 possible nonce values per key is still trivial. If we can already brute force the reduced keyspace, multiplying by 256 adds lead to 10.5 hours of time, which is not extreamly long.
+Because guessing 2^8 = 256 possible nonce values per key is still trivial. If we can already brute force the reduced keyspace, multiplying by 256 adds lead to approximately 10.5 hours of wait-time, which is not extremely long.
