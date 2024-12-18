@@ -4,7 +4,7 @@ In this CTF, we were given a ciphertext that was encrypted using AES in CTR mode
 
 ## Task 1
 
-We were provided the ciphered message, which includes the nonce used in the cipher in hexadecimal and the ciphered text, also in hexadecimal:
+We were provided the ciphered message, which includes the nonce used in the cipher in hexadecimal and the ciphered text corresponding to the flag, also in hexadecimal:
 
 ```
 32a200753d268cfb340c286516834711
@@ -94,7 +94,7 @@ for i in tqdm(range(256**3)):
 		break
 ```
 
-This way, after running the script 
+This way, after running the script and waiting some time, we successfully obtain the flag!
 
 ## Task 2
 
@@ -113,6 +113,5 @@ With 5 bytes or less, it is possible to break the encryption within 10 years. Ho
 
 ## Task 3
 
-Making a nonce secret by using only 1 byte and not transmitting it doesn’t meaningfully increase security.
-
-Because guessing 2^8 = 256 possible nonce values per key is still trivial. If we can already brute force the reduced keyspace, multiplying by 256 adds lead to approximately 10.5 hours of wait-time, which is not extremely long.
+Making a nonce secret by using only 1 byte and not transmitting it doesn’t meaningfully increase security.  
+Because guessing 2^8 = 256 possible nonce values per key is still trivial. If we can already brute force the reduced keyspace, multiplying by 256 adds lead to approximately 10.5 hours of wait-time, which is not extremely long or unfeasible for the average modern computer.
