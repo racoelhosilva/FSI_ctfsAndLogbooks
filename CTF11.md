@@ -44,7 +44,7 @@ def dec(k, c, nonce):
 
 **Answer:**
 
-Code were design to that usage:
+This code is designed to be used as follows:
 
 ```py
 nonce = os.urandom(KEYLEN)
