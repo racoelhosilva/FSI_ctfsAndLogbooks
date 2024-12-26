@@ -39,9 +39,7 @@ This packet presents information of four different layers:
 One thing to note is that the the Scapy library makes use of privileged operations. If we try to run the script as a normal user inside the container, it will fail due to permission errors.
 
 <p align="center" justify="center">
-  <img src="./assets/LOGBOOK13/failed-<p align="center" justify="center">
-  <img src="./assets/LOGBOOK13/sniff.png">
-</p>sniff.png">
+  <img src="./assets/LOGBOOK13/failed-sniff.png">
 </p>
 
 ### Task 1.1B.
@@ -95,3 +93,107 @@ if __name__ == '__main__':
 - To filter TCP packets that come from a particular IP (in our case, `10.9.0.6`) and with a destination port number 23, we can use the filter `tcp dst port 23 and src host 10.9.0.6`. We can see this working by generating a packet using `send(IP(dst='10.9.0.6')/TCP(dport=23))` (but not with `send(IP(dst='10.9.0.6')/TCP(dport=21))`, for example)
 
 - To filter packets that come from or go to a particular subnet (we will be using `10.9.0.0/24`), we can use the filter `net 10.9.0.0/24`. If we generate packets from or to the subnetwork (like any un-spoofed packet generated from hostA), they will be captured by the script. A packet generated using `send(IP(src='10.9.1.5', dst='10.9.1.6')/ICMP())` will not appear in the console, however, since neither the destination nor the source are from the subnetwork.
+
+## Task 1.2 Spoofing ICMP Packets
+
+In this task, the goal is to craft and send an ICMP packet from one host (Host A) to another host (Host B) with a specified source IP, and observe the results.
+
+### Python Script
+
+First, we created a Python script `script1.2.py`. 
+The script is based on the provided template with added configurations for the source (`src`) and destination (`dst`) IP addresses:
+
+```py
+#!/usr/bin/env python3
+
+from scapy.all import *
+
+a = IP()
+a.src = '10.9.0.5'  # (Host A)
+a.dst = '10.9.0.6'  # (Host B)
+b = ICMP()
+p = a / b
+send(p)
+
+ls(a)
+```
+
+This script constructs an ICMP packet with:
+ * `a.src`: The source IP set to `10.9.0.5` (Host A).
+ * `a.dst`: The destination IP set to `10.9.0.6` (Host B).
+
+### Steps to Execute
+
+1. Login to the Attacker Machine using `docksh 0405c69a7d64` command in terminal. Here, `0405c69a7d64` is the container ID of the attacker machine.
+2. Capture ICMP Packets on Host B:
+    * Login to Host B using: `docksh 1a97932fd224`, where `1a97932fd224` is the container ID of Host B.
+    * Use tcpdump to capture ICMP packets: `tcpdump -i any icmp -n` 
+> **Note**, Since Host B is a Docker container, it is easier to use tcpdump rather than Wireshark.
+3. Send the Spoofed Packet: run `python3 script1.2.py` in from the attacker machine.
+
+### Results
+
+Output from Attacker Machine:
+
+<p align="center" justify="center">
+    <img src="./assets/LOGBOOK13/task1.2sendICMP.png">
+</p>
+
+Output from Host B:
+
+<p align="center" justify="center">
+    <img src="./assets/LOGBOOK13/1.2receiveICMP.png">
+</p>
+
+The `tcpdump` output on Host B confirms the spoofed source (`10.9.0.5`) and the destination (`10.9.0.6`):
+
+```
+22:39:58.827557 IP 10.9.0.5 > 10.9.0.6: ICMP echo request, id 0, seq 0, length 8
+22:39:58.827602 IP 10.9.0.6 > 10.9.0.5: ICMP echo reply, id 0, seq 0, length 8
+```
+
+## Task 1.3: Traceroute
+
+In this task, we need to implemented a custom traceroute tool to estimate the distance (in terms of routers) between our VM and a selected destination by manipulating the TTL field of IP packets.
+
+### Python Script
+
+We wrote the following Python script `script1.3.py` to automate the traceroute functionality:
+
+```py
+#!/usr/bin/env python3
+
+import time
+from scapy.all import *
+
+a = IP()
+a.dst = '8.8.8.8'
+a.ttl = 1
+
+while True:
+    b = ICMP()
+    p = a / b
+    r = sr1(p, verbose=False, timeout=1)
+
+    if r is None:
+        continue
+
+    if r.src == a.dst:
+        print(f"\nFound destination = {a.dst} with ttl = {a.ttl}")
+        break
+
+    print(f"[*] ttl={a.ttl}, src={r.src};")
+    a.ttl += 1
+```
+
+* The `sr1()` function sends the packet and waits for a single response. The timeout=1 ensures the script does not hang if no response is received.
+* When the response source matches the destination (`r.src == a.dst`), the script breaks the loop, indicating the destination has been reached.
+
+The terminal output from running the script is as follows:
+
+<p align="center" justify="center">
+    <img src="./assets/LOGBOOK13/task1.3.png">
+</p>
+
+The results show that the destination IP `8.8.8.8` is reached after traversing **12 hops**.
+
