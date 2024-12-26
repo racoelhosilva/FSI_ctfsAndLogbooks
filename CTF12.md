@@ -67,7 +67,7 @@ To fully break the encrytion, we would need the definition of `getRandomPrime()`
 
 Since the RSA encryption is closely related to prime numbers, and since the challenge gives approximate values for the primes `p` and `q` used in the encryption, the first step is to discover the primes themselves. A good way to approach this is to develop a primality testing algorithm/heuristic. The suggestion for this task is the Miller-Rabin algorithm. 
 
-The Miller-Rabin test is a probabilistic primality test that determines whether a given number is prime or not. If the test discards the number, it cannot be prime. Hovewer, if the test passes, the number is likely to be prime, up to a certain probability.
+The [Miller-Rabin primality test](https://en.wikipedia.org/wiki/Miller%E2%80%93Rabin_primality_test) is a probabilistic primality test that determines whether a given number is prime or not. If the test discards the number, it cannot be prime. Hovewer, if the test passes, the number is likely to be prime, up to a certain probability.
 
 An implementation of the Miller-Rabin algorithm is provided below:
 
@@ -114,7 +114,7 @@ def gen_primes(t, g, n):
 
 ## Task 2 - Modular Multiplicative Inverse
 
-To decrypt the message, we need to calculate the value of `d` using the public exponent `e` and the modulus `n`. The private key `d` is the modular multiplicative inverse of `e` modulo `phi = (p - 1) * (q - 1)`, which can be calculated using the Extended Euclidean Algorithm.
+To decrypt the message, we need to calculate the value of `d` using the public exponent `e` and the modulus `n`. The private key `d` is the [modular multiplicative inverse](https://en.wikipedia.org/wiki/Modular_multiplicative_inverse) of `e` modulo `phi = (p - 1) * (q - 1)`, which can be calculated using the [Extended Euclidean Algorithm](https://en.wikipedia.org/wiki/Extended_Euclidean_algorithm).
 
 In short, the modular multiplicative inverse of an integer `a` is an integer `x` such that `ax = 1 (mod m)`. While the Euclidean Algorithm calculates the greatest common divisor of two numbers, the Extended Euclidean Algorithm also calculates the coefficients of the Bézout's identity, i.e. it finds `x` and `y` such that `ax + by = gcd(a, b)`. For `a` to have a modular multiplicative inverse modulo `m`, then `a` and `m` must be coprime, i.e. `gcd(a, m) = 1`. So, the previous equation becomes `ax + my = 1`, which means that `x` is the modular multiplicative inverse of `a` modulo `m`.
 
@@ -193,4 +193,3 @@ To reiterate some of the key points we talked about in this CTF:
 - Finally, how can I extract my key from the cryptogram I received?
 
   As mentioned previously, we can use trial-and-error to find the correct values of `p` and `q` and, with them, we can calculate the private key `d` using the modular multiplicative inverse, based on the Extended Euclidean Algorithm.
-
