@@ -48,7 +48,7 @@ One thing to note is that the the Scapy library makes use of privileged operatio
 
 This part of the task focuses on using BPF (Berkeley Packet Filter) filters to better filter sniffed packets, which is useful in real contexts.
 
-To better use BPF filters, we can check their specification in the [IBM BPF manual](https://www.ibm.com/docs/en/qsip/7.4?topic=queries-berkeley-packet-filters). To test them, we also need to know how we can generate and send packets using Scapy, which can be done using the `send()` function (to send the packet) and the `/` operator (to concatenate layers, generated using object-oriented notation).
+To better use BPF filters, we can check their specification in the [IBM BPF manual](https://www.ibm.com/docs/en/qsip/7.4?topic=queries-berkeley-packet-filters). To test them, we also need to know how we can generate and send packets using Scapy, which can be done using the `send()` function (to send the packet) and the `/` operator (to concatenate layers, generated using object-oriented notation), as wee can see from the [Scapy documentation](https://scapy.readthedocs.io/en/latest/usage.html#sending-packets).
 
 The usage of BPF filters is illustrated in the following script, adapted from the previous one and that can be used like `sniffer.py [ICMP|TCP|SUBNET]`:
 
