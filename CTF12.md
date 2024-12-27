@@ -14,7 +14,7 @@ b2370a40bf9d42078c2a9816171d57044d1b5e79687f51875692cdca764bc877dd3a63752d856366
 
 The first line contains the public exponent, the second line the modulus and the third line the cryptogram (in hexadecimal).
 
-In addition, the encryption script, `gen_example.py`, has the following source code:
+In addition to this, we were also given the encryption script, `gen_example.py`, which has the following source code:
 
 ```py
 def getParams(i, j):
@@ -61,7 +61,7 @@ The script defines the functions:
 
 The function `extendedEuclidean()` is also used in the RSA algorithm to calculate `d`, the modular multiplicative inverse of `e` modulo `phi = (p - 1) * (q - 1)`. 
 
-To fully break the encrytion, we would need the definition of `getRandomPrime()`, which is not provided. However, from the description of the CTF, we know that the primes `p` and `q` are primes close to `2^(500+offset)` and `2^(500+offset+1)` respectivelly, where `offset = ((t - 1) * 10 + g) // 2` (with `t` and `g` being our class turn and group number, in our case `t = 7` and `g = 1`). With this information, we can try to decrypt the message using all primes in a range around these numbers.
+To fully break the encrytion, we would need the definition of `getRandomPrime()`, which is not provided. However, from the description of the CTF, we know that the primes `p` and `q` are primes close to `2^(500+offset)` and `2^(500+offset+1)` respectively, where `offset = ((t - 1) * 10 + g) // 2` (with `t` and `g` being our class turn and group number, in our case `t = 7` and `g = 1`, meaning `offset = 61`). With this information, we can try to decrypt the message using all primes in a range around these numbers.
 
 ## Task 1 - Primality Testing
 
@@ -184,7 +184,7 @@ To reiterate some of the key points we talked about in this CTF:
 
 - How can I use the information I have to infer the values used in the RSA that cyphered the message?
 
-  As done in the script, since we know approximatelly the values of `p` and `q` used in the encryption, we can test all the primes in the vicinity of these values, with the help of the Miller-Rabin test, and test them against the encrypted message. The can assume that the values that give the correct decryption are the correct values.
+  As done in the script, since we know approximately the values of `p` and `q` used in the encryption, we can test all the primes in the vicinity of these values, with the help of the Miller-Rabin test, and test them against the encrypted message. We can assume that the values that give the correct decryption are the correct values.
 
 - How can I discover if my inference is correct?
 
