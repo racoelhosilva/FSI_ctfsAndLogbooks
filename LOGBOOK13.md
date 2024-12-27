@@ -55,8 +55,8 @@ This packet presents information of four different layers:
 
 - Ethernet: Contains information needed for transmitting information in a network at a more physical level, like the source and destination MAC addresses.
 - IP: Contains information needed for transmitting information in a network at a more logical level, like the source and destination IP addresses, for operations like logical addressing and routing.
-- ICMP: Holds information characteristic of ICMP (Internet Control Message Protocol) packets, used network diagnostics and error reporting.
-- Raw: Contains the raw data of the packet.
+- ICMP: Holds information characteristic of ICMP (Internet Control Message Protocol) packets, used in network diagnostics and error reporting.
+- Raw: Contains the raw payload of the packet.
 
 One thing to note is that the the Scapy library makes use of privileged operations. If we try to run the script as a normal user inside the container, it will fail due to permission errors.
 
@@ -112,7 +112,7 @@ if __name__ == '__main__':
 
 - The example originally presented already filters ICMP packets (using `icmp`), which is done if we run this script using the `ICMP` option. If we generate a packet using `send(IP(dst='10.9.0.6')/ICMP())`, it will be captured by the script. However, a TCP packet, for example (generated using `send(IP(dst='10.9.0.6')/TCP())`), will not be captured.
 
-- To filter TCP packets that come from a particular IP (in our case, `10.9.0.6`) and with a destination port number 23, we can use the filter `tcp dst port 23 and src host 10.9.0.6`. We can see this working by generating a packet using `send(IP(dst='10.9.0.6')/TCP(dport=23))` (but not with `send(IP(dst='10.9.0.6')/TCP(dport=21))`, for example)
+- To filter TCP packets that come from a particular IP (in our case, `10.9.0.5`) and with a destination port number 23, we can use the filter `tcp dst port 23 and src host 10.9.0.5`. We can see this working by generating a packet using `send(IP(dst='10.9.0.6')/TCP(dport=23))` in hostA (but not with `send(IP(dst='10.9.0.6')/TCP(dport=21))`, for example)
 
 - To filter packets that come from or go to a particular subnet (we will be using `10.9.0.0/24`), we can use the filter `net 10.9.0.0/24`. If we generate packets from or to the subnetwork (like any un-spoofed packet generated from hostA), they will be captured by the script. A packet generated using `send(IP(src='10.9.1.5', dst='10.9.1.6')/ICMP())` will not appear in the console, however, since neither the destination nor the source are from the subnetwork.
 
@@ -146,9 +146,9 @@ This script constructs an ICMP packet with:
 
 ### Steps to Execute
 
-1. Login to the Attacker Machine using `docksh 0405c69a7d64` command in terminal. Here, `0405c69a7d64` is the container ID of the attacker machine.
+1. Login to the Attacker Machine using `docksh <seed-attacker-id>` command in terminal.
 2. Capture ICMP Packets on Host B:
-    * Login to Host B using: `docksh 1a97932fd224`, where `1a97932fd224` is the container ID of Host B.
+    * Login to Host B using: `docksh <hostB>`, where `<hostB>` is the container ID of Host B.
     * Use tcpdump to capture ICMP packets: `tcpdump -i any icmp -n` 
 > **Note**, Since Host B is a Docker container, it is easier to use tcpdump rather than Wireshark.
 3. Send the Spoofed Packet: run `python3 script1.2.py` in from the attacker machine.
@@ -268,7 +268,7 @@ tcpdump -i any -n -v '(arp or icmp)'
 
 ### Examples
 
-We will now show 3 examples of sniffing and spoofing. For each one, we will explain the observations and present the output of the python script developed (running in the attacker container), the ping command output (running in host B), the tcpdump command (also running in host B) and the routes for the specified target host (taken from host B).
+We will now show 3 examples of sniffing and spoofing. For each one, we will explain the observations and present the output of the Python script developed (running in the attacker container), the ping command output (running in host B), the `tcpdump` command (also running in host B) and the routes for the specified target host (taken from host B).
 
 #### Example 1: `1.2.3.4` Non-Existing Host on the Internet
 
