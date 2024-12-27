@@ -45,7 +45,7 @@ pkt = sniff(iface='br-87824c9e582a', filter='icmp', prn=print_pkt)
 
 This script will sniff all packets from the network interface `br-87824c9e582a` that are ICMP packets, and will print them to the console.
 
-To see this script in action, we can start a shell inside the seed-attacker container (using `docksh <container-ID>`), give the script execution permissions (using `chmod a+x sniffer.py`) and run it (`sniffer.py`). From there, we can ping hostB from hostA (using `ping 10.9.0.6`) and, as we will see, the script will print the packets that are being transmitted, like the one presented below:
+To see this script in action, we can start a shell inside the seed-attacker container (using `docksh <container-ID>`), give the script execution permissions (using `chmod a+x script1.1-A.py`) and run it (`script1.1-A.py`). From there, we can ping host A from host B (using `ping 10.9.0.5`) and, as we will see, the script will print the packets that are being transmitted, like the one presented below:
 
 <p align="center" justify="center">
   <img src="./assets/LOGBOOK13/sniff.png">
@@ -93,7 +93,7 @@ def main():
     iface = 'br-87824c9e582a'
 
     if len(sys.argv) != 2:
-        print("Usage: sniffer.py [ICMP|TCP|SUBNET]")
+        print("Usage: script1.1-B.py [ICMP|TCP|SUBNET]")
         exit(1)
 
     if sys.argv[1] == 'ICMP':
@@ -103,18 +103,18 @@ def main():
     elif sys.argv[1] == 'SUBNET':
         capture_subnet(iface, '10.9.0.0/24')
     else:
-        print("Usage: sniffer.py [ICMP|TCP|SUBNET]")
+        print("Usage: script1.1-B.py [ICMP|TCP|SUBNET]")
         exit(1)
 
 if __name__ == '__main__':
     main()
 ```
 
-- The example originally presented already filters ICMP packets (using `icmp`), which is done if we run this script using the `ICMP` option. If we generate a packet using `send(IP(dst='10.9.0.6')/ICMP())`, it will be captured by the script. However, a TCP packet, for example (generated using `send(IP(dst='10.9.0.6')/TCP())`), will not be captured.
+- The example originally presented already filters ICMP packets (using `icmp`), which is done if we run this script using the `ICMP` option. If we generate a packet using `send(IP(dst='10.9.0.5')/ICMP())`, it will be captured by the script. However, a TCP packet, for example (generated using `send(IP(dst='10.9.0.5')/TCP())`), will not be captured.
 
-- To filter TCP packets that come from a particular IP (in our case, `10.9.0.5`) and with a destination port number 23, we can use the filter `tcp dst port 23 and src host 10.9.0.5`. We can see this working by generating a packet using `send(IP(dst='10.9.0.6')/TCP(dport=23))` in hostA (but not with `send(IP(dst='10.9.0.6')/TCP(dport=21))`, for example)
+- To filter TCP packets that come from a particular IP (in our case, `10.9.0.5`) and with a destination port number 23, we can use the filter `tcp dst port 23 and src host 10.9.0.5`. We can see this working by generating a packet using `send(IP(dst='10.9.0.5')/TCP(dport=23))` in host B (but not with `send(IP(dst='10.9.0.5')/TCP(dport=21))`, for example)
 
-- To filter packets that come from or go to a particular subnet (we will be using `10.9.0.0/24`), we can use the filter `net 10.9.0.0/24`. If we generate packets from or to the subnetwork (like any un-spoofed packet generated from hostA), they will be captured by the script. A packet generated using `send(IP(src='10.9.1.5', dst='10.9.1.6')/ICMP())` will not appear in the console, however, since neither the destination nor the source are from the subnetwork.
+- To filter packets that come from or go to a particular subnet (we will be using `10.9.0.0/24`), we can use the filter `net 10.9.0.0/24`. If we generate packets from or to the subnetwork (like any un-spoofed packet generated from host B), they will be captured by the script. A packet generated using `send(IP(src='10.9.1.6', dst='10.9.1.5')/ICMP())` will not appear in the console, however, since neither the destination nor the source are from the subnetwork.
 
 ## Task 1.2: Spoofing ICMP Packets
 
