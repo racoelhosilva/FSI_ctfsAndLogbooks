@@ -28,7 +28,7 @@ In this task, we want to learn how to sniff packets, using the Scapy library fro
 
 ### Task 1.1A.
 
-Along this task, we want to sniff packets transmitted to and from the hostA and hostB containers, from the seed-attacker container.
+For this task, we want to sniff packets transmitted to and from the hostA and hostB containers, from the seed-attacker container.
 
 To start sniffing packets from the network, we first need to find our docker network interface (e.g., using `ifconfig`, which is, in our case, `br-87824c9e582a`), and then we can build the following script:
 
