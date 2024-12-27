@@ -1,6 +1,26 @@
 # Seedlab Week #13 (Packet Sniffing and Spoofing)
 
-### TODO: Initial Setup
+## Initial Setup
+
+Before starting this seedlab, there is a simple initial setup consisting of the following step:
+- Launch the docker containers for this seedlabs (which can be done with the `dcbuild` and `dcup` commands)
+- Obtain the name of the network interface assigned when the containers are launched
+
+Setting up the docker containers is similar to other seedlabs, but this `docker-compose.yml` has a different configuration and launches 3 containers as shown below. Throughout the exercises, the ones we will mainly use are the Attacker container and Host B.  
+
+<p align="center" justify="center">
+  <img src="./assets/LOGBOOK13/setup.png">
+</p>
+
+The attacker container has a shared folder called `volumes` which can be used to write the python scripts and easily access them when inside the container. Since the attacker container must also be able to see all the traffic, it also has `network_mode: host`, which makes it work as a host in the subnetwork 10.9.0.0/24.
+
+Finally, to obtain the interface name, we just need to run `ifconfig` outside the containers and check for which interface has `inet 10.9.0.1`. The name of the interface should be saved for later usage.
+
+<p align="center" justify="center">
+  <img src="./assets/LOGBOOK13/ifconfig.png">
+</p>
+
+Once the containers are up and running and we have saved the network interface name for later, we are ready to start with the tasks.
 
 ## Task 1.1: Sniffing Packets
 
