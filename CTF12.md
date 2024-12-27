@@ -53,7 +53,7 @@ def gen():
 
 The script defines the functions:
 
-- `getParams()` - Returns the parameters used in the encryption (p, q, n, phi, e and d), given 
+- `getParams()` - Returns the parameters used in the encryption (p, q, n, phi, e and d), given (what is presumably) the exponents for the primes generation
 - `enc()` - Encrypts a message `x` using the public exponent `e` and the modulus `n`
 - `addFlag()` - Wraps the given string `f` with `flag{...}` and prepends the string `s` to it
 - `genFlag()` - Generates a random 16-character string
