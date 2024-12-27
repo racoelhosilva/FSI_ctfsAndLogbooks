@@ -254,31 +254,61 @@ We will now show 3 examples of sniffing and spoofing. For each one, we will expl
 
 In this first example, we can see that our program can successfully sniff the packets corresponding to ICMP Echo Requests from host B to 1.2.3.4 and it is also able to spoof the replies. This happens because in order to reach 1.2.3.4, host B uses a route that connects it to 10.9.0.1 which is our attacker container, allowing it to sniff and spoof the packets.
 
-<p align="center" justify="center">
-    <img src="./assets/LOGBOOK13/task1.4_example1_a.png">
-    <img src="./assets/LOGBOOK13/task1.4_example1_b.png">
-    <img src="./assets/LOGBOOK13/task1.4_example1_tcp.png">
-    <img src="./assets/LOGBOOK13/task1.4_example1_route.png">
-</p>
+<figure align="center">
+  <img src="./assets/LOGBOOK13/task1.4_example1_a.png">
+  <figcaption>Output of the Python Script</figcaption>
+</figure>
+<figure align="center">
+  <img src="./assets/LOGBOOK13/task1.4_example1_b.png">
+  <figcaption>Ping Command</figcaption>
+</figure>
+<figure align="center">
+  <img src="./assets/LOGBOOK13/task1.4_example1_tcp.png">
+  <figcaption>Output of tcpdump</figcaption>
+</figure>
+<figure align="center">
+  <img src="./assets/LOGBOOK13/task1.4_example1_route.png">
+  <figcaption>Route to host</figcaption>
+</figure>
 
 #### Example 2: `10.9.0.99` Non-Existing Host on the LAN
 
 In this second example, we can see that the `Destination Host is Unreachable` because the destination is a non-existing host on the same LAN. The route for that host does not pass through our attacker container and therefore, it is unable to sniff and reply with spoofed packets.
 
-<p align="center" justify="center">
-    <img src="./assets/LOGBOOK13/task1.4_example2_a.png">
-    <img src="./assets/LOGBOOK13/task1.4_example2_b.png">
-    <img src="./assets/LOGBOOK13/task1.4_example2_tcp.png">
-    <img src="./assets/LOGBOOK13/task1.4_example2_route.png">
-</p>
+<figure align="center">
+  <img src="./assets/LOGBOOK13/task1.4_example2_a.png">
+  <figcaption>Output of the Python Script</figcaption>
+</figure>
+<figure align="center">
+  <img src="./assets/LOGBOOK13/task1.4_example2_b.png">
+  <figcaption>Ping Command</figcaption>
+</figure>
+<figure align="center">
+  <img src="./assets/LOGBOOK13/task1.4_example2_tcp.png">
+  <figcaption>Output of tcpdump</figcaption>
+</figure>
+<figure align="center">
+  <img src="./assets/LOGBOOK13/task1.4_example2_route.png">
+  <figcaption>Route to host</figcaption>
+</figure>
 
 #### Example 3: `8.8.8.8` Existing Host on the Internet
 
 In this third example, we see that we get `DUP` replies. This happens because the route to 8.8.8.8 goes through our attacker container which sniff and replies with spoofed packets. However, besides these replies, the existing host is also sending similar replies back to host B, leading to duplicate replies.
 
-<p align="center" justify="center">
-    <img src="./assets/LOGBOOK13/task1.4_example3_a.png">
-    <img src="./assets/LOGBOOK13/task1.4_example3_b.png">
-    <img src="./assets/LOGBOOK13/task1.4_example3_tcp.png">
-    <img src="./assets/LOGBOOK13/task1.4_example3_route.png">
-</p>
+<figure align="center">
+  <img src="./assets/LOGBOOK13/task1.4_example3_a.png">
+  <figcaption>Output of the Python Script</figcaption>
+</figure>
+<figure align="center">
+  <img src="./assets/LOGBOOK13/task1.4_example3_b.png">
+  <figcaption>Ping Command</figcaption>
+</figure>
+<figure align="center">
+  <img src="./assets/LOGBOOK13/task1.4_example3_tcp.png">
+  <figcaption>Output of tcpdump</figcaption>
+</figure>
+<figure align="center">
+  <img src="./assets/LOGBOOK13/task1.4_example3_route.png">
+  <figcaption>Route to host</figcaption>
+</figure>
